@@ -1,0 +1,11 @@
+# AUTO-GENERATED from .ai/skills/archive-plan/SKILL.md — do not edit by hand.
+description = "Atomically archive a done plan along with its related brief, spec, and test plan. Fails loudly rather than partially archiving."
+
+prompt = """
+Load `.ai/skills/archive-plan/SKILL.md` and execute its
+procedure. Read `.ai/project.yaml` first to resolve paths.
+Follow the numbered Steps in `SKILL.md` exactly — do not
+improvise. Preflight before moving any file.
+
+Plan path: {{args}}
+"""

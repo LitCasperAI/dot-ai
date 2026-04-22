@@ -1,0 +1,12 @@
+# AUTO-GENERATED from .ai/skills/prepare-release/SKILL.md — do not edit by hand.
+description = "Drive the repo from a green main branch to a release-ready state — version bump, release notes, tag, CI trigger. Stops before store submission."
+
+prompt = """
+Load `.ai/skills/prepare-release/SKILL.md` and execute its
+procedure. Read `.ai/project.yaml` first to resolve paths,
+personas, and rules. Follow the numbered Steps in `SKILL.md`
+exactly — do not improvise. Shared-state actions (tag push, CI
+trigger) require explicit user approval.
+
+Optional arguments: {{args}}
+"""

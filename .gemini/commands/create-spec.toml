@@ -1,0 +1,11 @@
+# AUTO-GENERATED from .ai/skills/create-spec/SKILL.md — do not edit by hand.
+description = "Turn a product requirement into a brief (product-analyst) and then a spec plus ADRs (architect). Pauses after the brief for explicit approval."
+
+prompt = """
+Load `.ai/skills/create-spec/SKILL.md` and execute its
+procedure. Read `.ai/project.yaml` first to resolve paths,
+personas, and rules. Follow the numbered Steps in `SKILL.md`
+exactly — do not improvise.
+
+Input from the user: {{args}}
+"""

@@ -1,0 +1,11 @@
+# AUTO-GENERATED from .ai/skills/implement/SKILL.md — do not edit by hand.
+description = "Implement an approved plan file phase by phase, keeping checkboxes, progress counters, the 🔄 marker, and Notes honest as work proceeds."
+
+prompt = """
+Load `.ai/skills/implement/SKILL.md` and execute its
+procedure. Read `.ai/project.yaml` first to resolve paths,
+personas, and rules. Follow the numbered Steps in `SKILL.md`
+exactly — do not improvise.
+
+Plan path and optional phase: {{args}}
+"""

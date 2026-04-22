@@ -1,0 +1,11 @@
+# AUTO-GENERATED from .ai/skills/create-plan/SKILL.md — do not edit by hand.
+description = "Turn an approved spec into a phased implementation plan using templates/plan.md. Does not start implementation."
+
+prompt = """
+Load `.ai/skills/create-plan/SKILL.md` and execute its
+procedure. Read `.ai/project.yaml` first to resolve paths,
+personas, and rules. Follow the numbered Steps in `SKILL.md`
+exactly — do not improvise.
+
+Spec path: {{args}}
+"""

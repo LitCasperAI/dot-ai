@@ -1,0 +1,12 @@
+# AUTO-GENERATED from .ai/skills/review-change/SKILL.md — do not edit by hand.
+description = "Review a PR or local change against the loaded rules. Activates security-reviewer and tester conditionally based on what the diff touches."
+
+prompt = """
+Load `.ai/skills/review-change/SKILL.md` and execute its
+procedure. Read `.ai/project.yaml` first to resolve paths,
+personas, and rules. Follow the numbered Steps in `SKILL.md`
+exactly — do not improvise. The review is read-only by default;
+ask the user before posting to the PR.
+
+Change reference: {{args}}
+"""

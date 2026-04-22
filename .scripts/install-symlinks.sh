@@ -102,15 +102,39 @@ install_symlink "CLAUDE.md"                       ".ai/AGENTS.md"
 install_symlink "GEMINI.md"                       ".ai/AGENTS.md"
 install_symlink ".github/copilot-instructions.md" "../.ai/AGENTS.md"
 
+# Dynamically discover skills and Gemini commands from the submodule
 echo ""
-echo "=== Directory symlinks (skills & commands) ==="
-install_symlink ".claude/skills"    "../.ai/skills"
-install_symlink ".gemini/commands"  "../.ai/.gemini/commands"
+echo "=== Claude/Copilot skill symlinks ==="
+ALL_LINKS="CLAUDE.md GEMINI.md .github/copilot-instructions.md"
+
+if [ -d "$AI_DIR/skills" ]; then
+    for skill_dir in "$AI_DIR/skills"/*/; do
+        [ -d "$skill_dir" ] || continue
+        name="$(basename "$skill_dir")"
+        link=".claude/skills/$name/SKILL.md"
+        target="../../../.ai/skills/$name/SKILL.md"
+        install_symlink "$link" "$target"
+        ALL_LINKS="$ALL_LINKS $link"
+    done
+fi
+
+echo ""
+echo "=== Gemini command symlinks ==="
+
+if [ -d "$AI_DIR/.gemini/commands" ]; then
+    for toml in "$AI_DIR/.gemini/commands"/*.toml; do
+        [ -f "$toml" ] || continue
+        name="$(basename "$toml")"
+        link=".gemini/commands/$name"
+        target="../../.ai/.gemini/commands/$name"
+        install_symlink "$link" "$target"
+        ALL_LINKS="$ALL_LINKS $link"
+    done
+fi
 
 # ---------------------------------------------------------------------------
 # Git add & validate all symlinks are stored correctly (mode 120000)
 # ---------------------------------------------------------------------------
-ALL_LINKS="CLAUDE.md GEMINI.md .github/copilot-instructions.md .claude/skills .gemini/commands"
 
 if [ "$DRY_RUN" = true ]; then
     echo ""

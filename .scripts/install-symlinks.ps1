@@ -104,11 +104,27 @@ $fileSymlinks = @(
     @{ Link = '.github/copilot-instructions.md';    Target = '../.ai/AGENTS.md' }
 )
 
-# Directory symlinks: agent-specific dirs → content in .ai/
-$dirSymlinks = @(
-    @{ Link = '.claude/skills';     Target = '../.ai/skills' }
-    @{ Link = '.gemini/commands';   Target = '../.ai/.gemini/commands' }
-)
+# Dynamically discover skills and Gemini commands from the submodule
+# Each becomes an individual file symlink (not directory — those break on Windows git clone)
+$skillSymlinks = @()
+$skillsDir = Join-Path $ScriptDir 'skills'
+if (Test-Path $skillsDir) {
+    Get-ChildItem $skillsDir -Directory | ForEach-Object {
+        $name = $_.Name
+        # Claude/Copilot: .claude/skills/<name>/SKILL.md → ../../../.ai/skills/<name>/SKILL.md
+        $skillSymlinks += @{ Link = ".claude/skills/$name/SKILL.md"; Target = "../../../.ai/skills/$name/SKILL.md" }
+    }
+}
+
+$geminiSymlinks = @()
+$geminiDir = Join-Path $ScriptDir '.gemini/commands'
+if (Test-Path $geminiDir) {
+    Get-ChildItem $geminiDir -File -Filter '*.toml' | ForEach-Object {
+        $name = $_.Name
+        # Gemini: .gemini/commands/<name>.toml → ../../.ai/.gemini/commands/<name>.toml
+        $geminiSymlinks += @{ Link = ".gemini/commands/$name"; Target = "../../.ai/.gemini/commands/$name" }
+    }
+}
 
 # ---------------------------------------------------------------------------
 # Helper: create a single symlink (file or directory)
@@ -116,8 +132,7 @@ $dirSymlinks = @(
 function Install-Symlink {
     param(
         [string]$LinkRelative,
-        [string]$Target,
-        [switch]$IsDirectory
+        [string]$Target
     )
 
     $linkPath = Join-Path $RepoRoot $LinkRelative
@@ -136,33 +151,20 @@ function Install-Symlink {
     if (Test-Path $linkPath) {
         $item = Get-Item $linkPath -Force
         if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-            # For directory symlinks on Windows: git checkout creates file symlinks
-            # which don't work for directories. Detect and recreate if needed.
-            if ($IsDirectory -and -not $item.PSIsContainer) {
-                if ($DryRun) {
-                    Write-Host "[dry-run] Would recreate broken directory symlink: $LinkRelative"
-                } else {
-                    Remove-Item $linkPath -Force
-                    New-Item -ItemType SymbolicLink -Path $linkPath -Value $Target | Out-Null
-                    Write-Host "FIXED    $LinkRelative (recreated as directory symlink)"
-                }
-                return
-            }
-            Write-Host "OK       $LinkRelative (symlink already exists)"
+            Write-Host "OK       $LinkRelative"
             return
         }
 
-        # It's a regular file or directory
+        # It's a regular file
         if (-not $Force) {
-            $kind = if ($IsDirectory) { 'directory' } else { 'file' }
-            Write-Warning "SKIP     $LinkRelative exists as a regular $kind. Use -Force to overwrite."
+            Write-Warning "SKIP     $LinkRelative exists as a regular file. Use -Force to overwrite."
             return
         }
 
         if ($DryRun) {
             Write-Host "[dry-run] Would remove existing: $LinkRelative"
         } else {
-            Remove-Item $linkPath -Force -Recurse
+            Remove-Item $linkPath -Force
         }
     }
 
@@ -183,15 +185,21 @@ foreach ($entry in $fileSymlinks) {
 }
 
 Write-Host ""
-Write-Host "=== Directory symlinks (skills & commands) ==="
-foreach ($entry in $dirSymlinks) {
-    Install-Symlink -LinkRelative $entry.Link -Target $entry.Target -IsDirectory
+Write-Host "=== Claude/Copilot skill symlinks ($($skillSymlinks.Count) skills) ==="
+foreach ($entry in $skillSymlinks) {
+    Install-Symlink -LinkRelative $entry.Link -Target $entry.Target
+}
+
+Write-Host ""
+Write-Host "=== Gemini command symlinks ($($geminiSymlinks.Count) commands) ==="
+foreach ($entry in $geminiSymlinks) {
+    Install-Symlink -LinkRelative $entry.Link -Target $entry.Target
 }
 
 # ---------------------------------------------------------------------------
 # Git add & validate all symlinks are stored correctly (mode 120000)
 # ---------------------------------------------------------------------------
-$allLinks = @($fileSymlinks + $dirSymlinks) | ForEach-Object { $_.Link }
+$allLinks = @($fileSymlinks + $skillSymlinks + $geminiSymlinks) | ForEach-Object { $_.Link }
 
 if ($DryRun) {
     Write-Host ""

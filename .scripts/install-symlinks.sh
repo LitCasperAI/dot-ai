@@ -194,26 +194,47 @@ if [ "$DRY_RUN" != true ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Copy project.yaml.example → project.yaml if missing
+# Scaffold .ai-local/ directory (project-specific config, outside submodule)
 # ---------------------------------------------------------------------------
 echo ""
-echo "=== Project manifest ==="
+echo "=== Project-local config (.ai-local/) ==="
 
-project_yaml="$REPO_ROOT/.ai/project.yaml"
+for dir in \
+    .ai-local/rules \
+    .ai-local/overrides
+do
+    if [ -d "$REPO_ROOT/$dir" ]; then
+        echo "OK       $dir/"
+    elif [ "$DRY_RUN" = true ]; then
+        echo "[dry-run] Would create: $dir/"
+    else
+        mkdir -p "$REPO_ROOT/$dir"
+        touch "$REPO_ROOT/$dir/.gitkeep"
+        echo "CREATED  $dir/"
+    fi
+done
+
+# Copy project.yaml.example → .ai-local/project.yaml if missing
+project_yaml="$REPO_ROOT/.ai-local/project.yaml"
 project_yaml_example="$AI_DIR/project.yaml.example"
 
 if [ -f "$project_yaml" ]; then
-    echo "OK       .ai/project.yaml (already exists)"
+    echo "OK       .ai-local/project.yaml (already exists)"
 elif [ ! -f "$project_yaml_example" ]; then
     echo "WARNING: SKIP     .ai/project.yaml.example not found" >&2
 else
     if [ "$DRY_RUN" = true ]; then
-        echo "[dry-run] Would copy .ai/project.yaml.example -> .ai/project.yaml"
+        echo "[dry-run] Would copy .ai/project.yaml.example -> .ai-local/project.yaml"
     else
         cp "$project_yaml_example" "$project_yaml"
-        echo "CREATED  .ai/project.yaml (copied from project.yaml.example)"
-        echo "         Edit .ai/project.yaml to set your project name, type, and stacks."
+        echo "CREATED  .ai-local/project.yaml (copied from project.yaml.example)"
+        echo "         Edit .ai-local/project.yaml to set your project name, type, and stacks."
     fi
+fi
+
+if [ "$DRY_RUN" != true ]; then
+    git add .ai-local/
+    echo "Staged .ai-local/ in git."
 fi
 
 echo ""

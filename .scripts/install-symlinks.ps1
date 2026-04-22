@@ -268,24 +268,51 @@ if (-not $DryRun) {
 }
 
 # ---------------------------------------------------------------------------
-# Copy project.yaml.example → project.yaml if missing
+# Scaffold .ai-local/ directory (project-specific config, outside submodule)
 # ---------------------------------------------------------------------------
 Write-Host ""
-Write-Host "=== Project manifest ==="
+Write-Host "=== Project-local config (.ai-local/) ==="
 
-$projectYaml = Join-Path $RepoRoot '.ai/project.yaml'
+$aiLocalDirs = @(
+    '.ai-local/rules'
+    '.ai-local/overrides'
+)
+
+foreach ($dir in $aiLocalDirs) {
+    $dirPath = Join-Path $RepoRoot $dir
+    if (Test-Path $dirPath) {
+        Write-Host "OK       $dir/"
+    } elseif ($DryRun) {
+        Write-Host "[dry-run] Would create: $dir/"
+    } else {
+        New-Item -ItemType Directory -Path $dirPath -Force | Out-Null
+        $gitkeep = Join-Path $dirPath '.gitkeep'
+        if (-not (Test-Path $gitkeep)) {
+            New-Item -ItemType File -Path $gitkeep -Force | Out-Null
+        }
+        Write-Host "CREATED  $dir/"
+    }
+}
+
+# Copy project.yaml.example → .ai-local/project.yaml if missing
+$projectYaml = Join-Path $RepoRoot '.ai-local/project.yaml'
 $projectYamlExample = Join-Path $ScriptDir 'project.yaml.example'
 
 if (Test-Path $projectYaml) {
-    Write-Host "OK       .ai/project.yaml (already exists)"
+    Write-Host "OK       .ai-local/project.yaml (already exists)"
 } elseif (-not (Test-Path $projectYamlExample)) {
     Write-Warning "SKIP     .ai/project.yaml.example not found — cannot scaffold project.yaml"
 } elseif ($DryRun) {
-    Write-Host "[dry-run] Would copy .ai/project.yaml.example -> .ai/project.yaml"
+    Write-Host "[dry-run] Would copy .ai/project.yaml.example -> .ai-local/project.yaml"
 } else {
     Copy-Item $projectYamlExample $projectYaml
-    Write-Host "CREATED  .ai/project.yaml (copied from project.yaml.example)"
-    Write-Host "         Edit .ai/project.yaml to set your project name, type, and stacks."
+    Write-Host "CREATED  .ai-local/project.yaml (copied from project.yaml.example)"
+    Write-Host "         Edit .ai-local/project.yaml to set your project name, type, and stacks."
+}
+
+if (-not $DryRun) {
+    git add .ai-local/
+    Write-Host "Staged .ai-local/ in git."
 }
 
 Write-Host ""

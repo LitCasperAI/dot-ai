@@ -1,7 +1,9 @@
 # Per-project manifest. Agents read this file first every session.
-# On install, copy to `.ai/project.yaml` and fill in project-specific
-# fields. Commit the copy; this `.example` stays as the scaffold
-# reference.
+# On install, this is copied to `.ai-local/project.yaml`.
+# Edit the copy for your project; this `.example` stays as the
+# scaffold reference.
+#
+# All paths in rules.load are relative to the repo root.
 
 project:
   name: "example-mobile-app"
@@ -11,10 +13,9 @@ project:
 
 rules:
   load:
-    - global/*
-    - stacks/react-native/*
-    # - local/*   # enable once `.ai/rules/local/` has content
-    #             # (local is added in a later stage)
+    - .ai/rules/global/*
+    - .ai/rules/stacks/react-native/*
+    # - .ai-local/rules/*   # enable once .ai-local/rules/ has content
 
 personas:
   enabled: [architect, product-analyst, implementer]

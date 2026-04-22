@@ -8,9 +8,9 @@ Copilot, Cursor, and others).
 Keep this file under 200 lines. If it grows past that, split
 content into referenced files rather than appending.
 
-## First: read `.ai/project.yaml`
+## First: read `project.yaml`
 
-Before doing anything else, read `.ai/project.yaml`. It is the
+Before doing anything else, read `.ai-local/project.yaml`. It is the
 routing contract for this project and declares:
 
 - The project's name, type, and active stacks.
@@ -24,22 +24,25 @@ authoritative manifest. If it is missing, stop and ask.
 ## How this scaffold is organised
 
 ```
-.ai/
-├── AGENTS.md           ← this file
-├── project.yaml        ← per-project manifest, read first
-├── personas/           ← stack-agnostic roles (implementer, …)
-├── skills/             ← user-invokable procedures; one folder per
-│                         skill, each containing a SKILL.md
+.ai/                            ← submodule (shared across projects)
+├── AGENTS.md                   ← this file
+├── personas/                   ← stack-agnostic roles (implementer, …)
+├── skills/                     ← user-invokable procedures; one folder per
+│                                 skill, each containing a SKILL.md
 ├── rules/
-│   ├── global/         ← always loaded
-│   ├── stacks/<name>/  ← loaded per project.yaml
-│   └── local/          ← project-specific, highest priority
-├── overrides/          ← additive persona extensions per stack
-└── templates/          ← skeletons for generated docs
+│   ├── global/                 ← always loaded
+│   └── stacks/<name>/          ← loaded per project.yaml
+├── templates/                  ← skeletons for generated docs
+└── project.yaml.example        ← template; copy to .ai-local/
+
+.ai-local/                      ← project-specific (tracked in your repo)
+├── project.yaml                ← per-project manifest, read first
+├── rules/                      ← project-specific rule overrides
+└── overrides/                  ← additive persona extensions per stack
 
 docs/
-├── briefs/  specs/  plans/   ← each split into active/ and archive/
-└── decisions/                ← ADRs, never archived
+├── briefs/  specs/  plans/     ← each split into active/ and archive/
+└── decisions/                  ← ADRs, never archived
 ```
 
 ## Skills
@@ -69,13 +72,13 @@ Rules are loaded in the order listed in `project.yaml` under
 the same name appears in more than one location. The standard
 chain is:
 
-1. `global/*`          — org-wide baseline, always loaded.
-2. `stacks/<stack>/*`  — team-specific constraints for this stack.
-3. `local/*`           — this project's own overrides.
+1. `.ai/rules/global/*`        — org-wide baseline, always loaded.
+2. `.ai/rules/stacks/<stack>/*` — team-specific constraints.
+3. `.ai-local/rules/*`          — this project's own overrides.
 
-`local/` wins over `stacks/` wins over `global/` by same-filename
-replacement. Treat this chain as authoritative unless
-`project.yaml` specifies a different order — in which case
+`.ai-local/rules/` wins over `stacks/` wins over `global/` by
+same-filename replacement. Treat this chain as authoritative
+unless `project.yaml` specifies a different order — in which case
 `project.yaml` wins and you should flag the divergence.
 
 ## Personas and overrides
@@ -85,11 +88,11 @@ Personas live in `.ai/personas/` and describe how a role
 paths. They are stack-agnostic by design. A persona does not teach
 the stack; rules do that.
 
-`.ai/overrides/<stack>/<persona>.md`, when present, is additive
-content appended to the base persona at invocation time. Overrides
-may not silently contradict their base. If a contradiction exists,
-the override must state it explicitly. Overrides are an escape
-hatch, not a default.
+`.ai-local/overrides/<stack>/<persona>.md`, when present, is
+additive content appended to the base persona at invocation time.
+Overrides may not silently contradict their base. If a
+contradiction exists, the override must state it explicitly.
+Overrides are an escape hatch, not a default.
 
 Note: the persona `overrides/` mechanism is distinct from the
 rule precedence chain above, even though both use the word

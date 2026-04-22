@@ -1,24 +1,28 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Creates git-compatible symlinks from AI agent entry-point files to .ai/AGENTS.md.
+    Installs dot-ai symlinks into the consumer repository.
 
 .DESCRIPTION
     This script is part of the dot-ai submodule (.ai/).
     It creates symlinks so that various AI coding tools (Claude Code, Gemini CLI,
-    GitHub Copilot, etc.) all resolve to the single .ai/AGENTS.md file.
+    GitHub Copilot CLI, etc.) all resolve to content inside .ai/.
 
-    Symlinks created (relative to repo root):
+    File symlinks (entry points → .ai/AGENTS.md):
       CLAUDE.md                         -> .ai/AGENTS.md
       GEMINI.md                         -> .ai/AGENTS.md
       .github/copilot-instructions.md   -> ../.ai/AGENTS.md
 
+    Directory symlinks (agent skill/command dirs → .ai/):
+      .claude/skills                    -> ../.ai/skills
+      .gemini/commands                  -> ../.ai/.gemini/commands
+
     On Windows, the script:
       - Enables git symlink support (core.symlinks = true)
-      - Requires either Developer Mode or an elevated (admin) shell to create symlinks
+      - Requires either Developer Mode or an elevated (admin) shell
 
 .PARAMETER Force
-    Overwrite existing files (non-symlink) with symlinks.
+    Overwrite existing files/directories (non-symlink) with symlinks.
 
 .PARAMETER DryRun
     Show what would be done without making changes.
@@ -90,21 +94,34 @@ Aborting.
 }
 
 # ---------------------------------------------------------------------------
-# Symlink definitions: LinkPath (relative to repo root) -> Target (relative to link location)
+# Symlink definitions
 # ---------------------------------------------------------------------------
-$symlinks = @(
+
+# File symlinks: entry-point files → .ai/AGENTS.md
+$fileSymlinks = @(
     @{ Link = 'CLAUDE.md';                          Target = '.ai/AGENTS.md' }
     @{ Link = 'GEMINI.md';                          Target = '.ai/AGENTS.md' }
     @{ Link = '.github/copilot-instructions.md';    Target = '../.ai/AGENTS.md' }
 )
 
+# Directory symlinks: agent-specific dirs → content in .ai/
+$dirSymlinks = @(
+    @{ Link = '.claude/skills';     Target = '../.ai/skills' }
+    @{ Link = '.gemini/commands';   Target = '../.ai/.gemini/commands' }
+)
+
 # ---------------------------------------------------------------------------
-# Create symlinks
+# Helper: create a single symlink (file or directory)
 # ---------------------------------------------------------------------------
-foreach ($entry in $symlinks) {
-    $linkPath   = Join-Path $RepoRoot $entry.Link
-    $linkDir    = Split-Path -Parent $linkPath
-    $target     = $entry.Target
+function Install-Symlink {
+    param(
+        [string]$LinkRelative,
+        [string]$Target,
+        [switch]$IsDirectory
+    )
+
+    $linkPath = Join-Path $RepoRoot $LinkRelative
+    $linkDir  = Split-Path -Parent $linkPath
 
     # Ensure parent directory exists
     if (-not (Test-Path $linkDir)) {
@@ -119,52 +136,68 @@ foreach ($entry in $symlinks) {
     if (Test-Path $linkPath) {
         $item = Get-Item $linkPath -Force
         if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-            Write-Host "OK  $($entry.Link) (symlink already exists)"
-            continue
+            Write-Host "OK       $LinkRelative (symlink already exists)"
+            return
         }
 
-        # It's a regular file
+        # It's a regular file or directory
         if (-not $Force) {
-            Write-Warning "SKIP  $($entry.Link) exists as a regular file. Use -Force to overwrite."
-            continue
+            $kind = if ($IsDirectory) { 'directory' } else { 'file' }
+            Write-Warning "SKIP     $LinkRelative exists as a regular $kind. Use -Force to overwrite."
+            return
         }
 
         if ($DryRun) {
-            Write-Host "[dry-run] Would remove existing file: $($entry.Link)"
+            Write-Host "[dry-run] Would remove existing: $LinkRelative"
         } else {
-            Remove-Item $linkPath -Force
+            Remove-Item $linkPath -Force -Recurse
         }
     }
 
     if ($DryRun) {
-        Write-Host "[dry-run] Would create symlink: $($entry.Link) -> $target"
+        Write-Host "[dry-run] Would create symlink: $LinkRelative -> $Target"
     } else {
-        New-Item -ItemType SymbolicLink -Path $linkPath -Value $target | Out-Null
-        Write-Host "CREATED  $($entry.Link) -> $target"
+        New-Item -ItemType SymbolicLink -Path $linkPath -Value $Target | Out-Null
+        Write-Host "CREATED  $LinkRelative -> $Target"
     }
 }
 
 # ---------------------------------------------------------------------------
-# Git add & validate symlinks are stored correctly (mode 120000)
+# Create all symlinks
 # ---------------------------------------------------------------------------
-$linkPaths = $symlinks | ForEach-Object { $_.Link }
+Write-Host "=== File symlinks (entry points) ==="
+foreach ($entry in $fileSymlinks) {
+    Install-Symlink -LinkRelative $entry.Link -Target $entry.Target
+}
+
+Write-Host ""
+Write-Host "=== Directory symlinks (skills & commands) ==="
+foreach ($entry in $dirSymlinks) {
+    Install-Symlink -LinkRelative $entry.Link -Target $entry.Target -IsDirectory
+}
+
+# ---------------------------------------------------------------------------
+# Git add & validate all symlinks are stored correctly (mode 120000)
+# ---------------------------------------------------------------------------
+$allLinks = @($fileSymlinks + $dirSymlinks) | ForEach-Object { $_.Link }
 
 if ($DryRun) {
-    Write-Host "[dry-run] Would run: git add $($linkPaths -join ' ')"
+    Write-Host ""
+    Write-Host "[dry-run] Would run: git add $($allLinks -join ' ')"
     Write-Host "[dry-run] Would verify symlink mode (120000) in git index"
 } else {
     Write-Host ""
-    git add @linkPaths
-    Write-Host "Staged symlinks in git."
+    git add @allLinks
+    Write-Host "Staged all symlinks in git."
 
-    # Validate that git recorded them as symlinks (mode 120000), not regular files
+    # Validate that git recorded them as symlinks (mode 120000)
     $failed = @()
-    foreach ($lp in $linkPaths) {
+    foreach ($lp in $allLinks) {
         $lsEntry = git ls-files -s $lp 2>$null
         if ($lsEntry -match '^120000') {
-            Write-Host "VERIFIED  $lp (git mode 120000 — symlink)"
+            Write-Host "VERIFIED $lp (git mode 120000 — symlink)"
         } else {
-            Write-Warning "PROBLEM   $lp is NOT stored as a symlink in git: $lsEntry"
+            Write-Warning "PROBLEM  $lp is NOT stored as a symlink in git: $lsEntry"
             $failed += $lp
         }
     }
@@ -172,17 +205,17 @@ if ($DryRun) {
     if ($failed.Count -gt 0) {
         Write-Host ""
         Write-Warning @"
-Some files are not stored as symlinks in git. Common causes:
-  - core.symlinks was false when the files were first added
-  - The files were added as regular files before this script ran
-Fix: ensure core.symlinks = true, delete the files, run this script again.
+Some paths are not stored as symlinks in git. Common causes:
+  - core.symlinks was false when the paths were first added
+  - The paths were added as regular files/dirs before this script ran
+Fix: ensure core.symlinks = true, remove the paths, run this script again.
 "@
         exit 1
     }
 }
 
 Write-Host ""
-Write-Host "Done."
+Write-Host "Done. All symlinks installed and verified."
 
 } finally {
     Pop-Location

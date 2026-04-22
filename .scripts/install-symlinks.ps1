@@ -136,6 +136,18 @@ function Install-Symlink {
     if (Test-Path $linkPath) {
         $item = Get-Item $linkPath -Force
         if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+            # For directory symlinks on Windows: git checkout creates file symlinks
+            # which don't work for directories. Detect and recreate if needed.
+            if ($IsDirectory -and -not $item.PSIsContainer) {
+                if ($DryRun) {
+                    Write-Host "[dry-run] Would recreate broken directory symlink: $LinkRelative"
+                } else {
+                    Remove-Item $linkPath -Force
+                    New-Item -ItemType SymbolicLink -Path $linkPath -Value $Target | Out-Null
+                    Write-Host "FIXED    $LinkRelative (recreated as directory symlink)"
+                }
+                return
+            }
             Write-Host "OK       $LinkRelative (symlink already exists)"
             return
         }

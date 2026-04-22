@@ -134,19 +134,28 @@ echo ""
 echo "=== Running install-symlinks.sh ==="
 
 install_script="$SCRIPTS_DIR/install-symlinks.sh"
-install_args=""
-if [ "$DRY_RUN" = true ]; then install_args="--dry-run"; fi
 
-# shellcheck disable=SC2086
-sh "$install_script" $install_args
+if [ ! -f "$install_script" ]; then
+    echo "WARNING: install-symlinks.sh not found after submodule update — skipping install step." >&2
+    echo "WARNING: You may need to run install-symlinks.sh manually." >&2
+else
+    install_args=""
+    if [ "$DRY_RUN" = true ]; then install_args="--dry-run"; fi
+    # shellcheck disable=SC2086
+    sh "$install_script" $install_args
+fi
 
 # ---------------------------------------------------------------------------
-# Step 4: Stage the submodule bump itself
+# Step 4: Stage everything
 # ---------------------------------------------------------------------------
 if [ "$DRY_RUN" != true ]; then
     git add .ai
+    # Stage .ai-local/ in case install created/updated project.yaml or scaffolding
+    if [ -d ".ai-local" ]; then
+        git add .ai-local/
+    fi
     echo ""
-    echo "Staged .ai submodule bump."
+    echo "Staged .ai submodule bump and .ai-local/."
 fi
 
 echo ""

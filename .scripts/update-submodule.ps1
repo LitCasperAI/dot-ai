@@ -144,17 +144,26 @@ Write-Host ""
 Write-Host "=== Running install-symlinks.ps1 ==="
 
 $installScript = Join-Path $ScriptsDir 'install-symlinks.ps1'
-$installArgs = @{ DryRun = $DryRun }
 
-& $installScript @installArgs
+if (-not (Test-Path $installScript)) {
+    Write-Warning "install-symlinks.ps1 not found after submodule update — skipping install step."
+    Write-Warning "You may need to run install-symlinks.ps1 manually."
+} else {
+    $installArgs = @{ DryRun = $DryRun }
+    & $installScript @installArgs
+}
 
 # ---------------------------------------------------------------------------
-# Step 4: Stage the submodule bump itself
+# Step 4: Stage everything
 # ---------------------------------------------------------------------------
 if (-not $DryRun) {
     git add .ai
+    # Stage .ai-local/ in case install created/updated project.yaml or scaffolding
+    if (Test-Path '.ai-local') {
+        git add .ai-local/
+    }
     Write-Host ""
-    Write-Host "Staged .ai submodule bump."
+    Write-Host "Staged .ai submodule bump and .ai-local/."
 }
 
 Write-Host ""

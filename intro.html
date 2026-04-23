@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dot-ai — AI Agent Scaffolding for Any Project</title>
+<style>
+  /* ── Reset & base ─────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 18px; scroll-snap-type: y mandatory; overflow-y: scroll; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0d1117; color: #c9d1d9; line-height: 1.7;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── Slide container ──────────────────────────────────────── */
+  .slide {
+    min-height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; padding: 4rem 2rem;
+    position: relative; scroll-snap-align: start; scroll-snap-stop: always;
+  }
+  .slide-inner { max-width: 960px; margin: 0 auto; width: 100%; }
+  .slide:nth-child(even) { background: #161b22; }
+
+  /* ── Typography ───────────────────────────────────────────── */
+  h1 { font-size: 2.8rem; color: #f0f6fc; margin-bottom: 0.5rem; line-height: 1.2; }
+  h2 { font-size: 2rem; color: #f0f6fc; margin-bottom: 1rem; line-height: 1.3; }
+  h3 { font-size: 1.35rem; color: #8b949e; margin-bottom: 0.75rem; font-weight: 500; }
+  p, li { margin-bottom: 0.6rem; }
+  ul, ol { padding-left: 1.4rem; }
+  .subtitle { font-size: 1.2rem; color: #8b949e; margin-bottom: 2rem; }
+  .tag {
+    display: inline-block; padding: 0.15rem 0.55rem; border-radius: 1rem;
+    font-size: 0.75rem; font-weight: 600; margin-right: 0.3rem;
+    vertical-align: middle;
+  }
+  .tag-persona   { background: #1f3a5f; color: #79c0ff; }
+  .tag-mechanic  { background: #1a3a1a; color: #7ee787; }
+  .tag-gate      { background: #5a2d0c; color: #f0883e; }
+  .tag-output    { background: #3b1f5e; color: #d2a8ff; }
+
+  /* ── Cards ────────────────────────────────────────────────── */
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem; margin-top: 1.5rem;
+  }
+  .card {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 0.75rem;
+    padding: 1.5rem; transition: border-color 0.2s;
+  }
+  .slide:nth-child(even) .card { background: #0d1117; }
+  .slide:nth-child(odd) .card  { background: #161b22; }
+  .card:hover { border-color: #58a6ff; }
+  .card h3 { color: #f0f6fc; font-size: 1.15rem; margin-bottom: 0.4rem; }
+  .card p  { font-size: 0.92rem; color: #8b949e; margin-bottom: 0; }
+
+  /* ── Diagram ──────────────────────────────────────────────── */
+  .diagram {
+    background: #161b22; border: 1px solid #30363d; border-radius: 0.75rem;
+    padding: 2rem; margin-top: 1.5rem; overflow-x: auto;
+  }
+  .slide:nth-child(even) .diagram { background: #0d1117; }
+  .diagram pre {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 0.82rem; line-height: 1.55; color: #c9d1d9; white-space: pre;
+  }
+
+  /* ── Code ─────────────────────────────────────────────────── */
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    background: #1f2937; padding: 0.1rem 0.4rem; border-radius: 0.3rem;
+    font-size: 0.85rem;
+  }
+  pre code { background: none; padding: 0; }
+
+  /* ── Workflow step list ───────────────────────────────────── */
+  .steps { counter-reset: step; list-style: none; padding-left: 0; }
+  .steps li {
+    position: relative; padding-left: 2.5rem; margin-bottom: 1rem;
+    font-size: 0.95rem;
+  }
+  .steps li::before {
+    counter-increment: step; content: counter(step);
+    position: absolute; left: 0; top: 0.1rem;
+    width: 1.7rem; height: 1.7rem; border-radius: 50%;
+    background: #1f3a5f; color: #79c0ff; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem;
+  }
+
+  /* ── Skill detail sections ────────────────────────────────── */
+  .skill-section { margin-top: 2.5rem; }
+  .skill-section h3 {
+    color: #f0f6fc; font-size: 1.3rem; font-weight: 700;
+    padding-bottom: 0.4rem; border-bottom: 2px solid #30363d;
+    margin-bottom: 1rem;
+  }
+  .skill-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+
+  /* ── Nav ──────────────────────────────────────────────────── */
+  nav {
+    position: fixed; right: 1.2rem; top: 50%; transform: translateY(-50%);
+    z-index: 100; display: flex; flex-direction: column; gap: 0.5rem;
+  }
+  nav a {
+    display: block; width: 10px; height: 10px; border-radius: 50%;
+    background: #30363d; transition: background 0.2s;
+  }
+  nav a:hover, nav a.active { background: #58a6ff; }
+  @media (max-width: 768px) { nav { display: none; } }
+
+  /* ── Utility ──────────────────────────────────────────────── */
+  .highlight { color: #58a6ff; }
+  .em-green  { color: #7ee787; }
+  .em-orange { color: #f0883e; }
+  .em-purple { color: #d2a8ff; }
+  .spacer    { height: 1.5rem; }
+  .two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     NAV DOTS
+     ============================================================ -->
+<nav id="dotnav"></nav>
+
+
+<!-- ============================================================
+     SLIDE 1 — Title
+     ============================================================ -->
+<section class="slide" id="title">
+<div class="slide-inner" style="text-align:center;">
+  <h1>dot-ai</h1>
+  <p class="subtitle">A reusable git submodule that adds AI-agent scaffolding to <em>any</em> project.</p>
+  <p style="font-size:1rem; color:#8b949e;">
+    One submodule &middot; Every AI tool &middot; Fork &amp; adapt
+  </p>
+  <div class="spacer"></div>
+  <p><code>git submodule add -b main --name dot-ai &lt;url&gt; .ai</code></p>
+  <p style="font-size:0.85rem; color:#484f58; margin-top:2rem;">↓ scroll to explore</p>
+</div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 2 — Why Agents Need Guardrails
+     ============================================================ -->
+<section class="slide" id="why-guardrails">
+<div class="slide-inner">
+  <h2>Why AI Agents Need Guardrails</h2>
+  <p class="subtitle">An LLM is a powerful generalist — but without structure, it improvises everything.</p>
+  <div class="card-grid">
+    <div class="card">
+      <h3>📏 Rules</h3>
+      <p>Without explicit coding standards, agents produce code that <em>works</em> but doesn't match your stack conventions, naming patterns, or security requirements. Every prompt starts from zero.</p>
+    </div>
+    <div class="card">
+      <h3>🎭 Personas</h3>
+      <p>An agent can be an architect, an implementer, or a reviewer — but only if you tell it which hat to wear. Without personas, it blurs roles and skips approval gates.</p>
+    </div>
+    <div class="card">
+      <h3>🛠️ Skills</h3>
+      <p>Repeatable workflows (spec → plan → implement → review) need to be captured as reusable commands, not re-described each time. Skills turn tribal knowledge into executable process.</p>
+    </div>
+    <div class="card">
+      <h3>📁 Templates</h3>
+      <p>Specs, plans, ADRs, and briefs need consistent structure so agents know <em>what</em> to produce and humans know where to find it. Templates enforce that contract.</p>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p style="color:#8b949e; font-size:0.95rem;">Together, these turn an AI agent from a <em>"do whatever"</em> chatbot into a <strong style="color:#7ee787;">disciplined team member</strong> that follows your process.</p>
+</div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 3 — The Workflow
+     ============================================================ -->
+<section class="slide" id="workflow">
+<div class="slide-inner">
+  <h2>The Workflow: 11 Skills, One Pipeline</h2>
+  <p>Skills form a pipeline from requirement → release. Each skill produces artifacts the next one consumes.</p>
+  <div class="diagram"><pre>
+  <span class="highlight">User requirement</span> (free text, ticket, Slack message)
+          │
+          ▼
+    ┌─────────────┐   product-analyst drafts brief,
+    │ <span class="em-green">create-spec</span> │   architect drafts spec + ADRs
+    └──────┬──────┘
+           │  brief → <span class="em-orange">⏸ USER APPROVAL</span> → spec
+           ▼
+    ┌─────────────┐
+    │ <span class="em-green">create-plan</span> │   architect phases work into plan
+    └──────┬──────┘
+           │                    ┌───────────────┐
+           ├───────────────────→│ <span class="em-purple">design-tests</span>  │  (optional, parallel)
+           │                    └───────┬───────┘
+           ▼                            │
+    ┌─────────────┐                     │
+    │ <span class="em-green">implement</span>   │◄────────────────────┘  uses test plan
+    └──────┬──────┘
+           │  ⏸ pause / resume
+           ▼
+    ┌──────────────┐
+    │ <span class="em-green">resume-plan</span>  │   picks up 🔄 marker, loads context
+    └──────┬───────┘
+           │  hands back to implement
+           ▼
+    ┌────────────────┐
+    │ <span class="em-orange">review-change</span>  │   reviewer + conditional security &amp; test passes
+    └──────┬─────────┘
+           │
+           ▼
+    ┌──────────────┐
+    │ <span class="em-green">archive-plan</span> │   moves done artifacts to archive/
+    └──────┬───────┘
+           │  (repeat for N features)
+           ▼
+    ┌─────────────────┐
+    │ <span class="em-purple">prepare-release</span> │   version bump, release notes, tag, CI
+    └─────────────────┘
+
+  <span style="color:#484f58;">Cross-cutting:</span>
+    <span class="em-green">refresh-docs</span>      — invoked inline by most skills, regenerates dashboard
+    <span class="em-orange">security-review</span>   — standalone deep security review (any time)
+    <span class="em-purple">integrity-check</span>   — diagnostic: "is my .ai/ install healthy?"
+  </pre></div>
+</div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 4 — Skills detail: Spec → Plan → Tests
+     ============================================================ -->
+<section class="slide" id="skills-spec">
+<div class="slide-inner">
+  <h2>Skills in Detail: From Idea to Plan</h2>
+
+  <div class="skill-section">
+    <h3>/create-spec</h3>
+    <div class="skill-meta">
+      <span class="tag tag-persona">product-analyst</span>
+      <span class="tag tag-persona">architect</span>
+      <span class="tag tag-gate">⏸ approval gate</span>
+      <span class="tag tag-output">brief + spec + ADRs</span>
+    </div>
+    <p>Turns a user requirement into a <strong>brief</strong> (product language) and a <strong>technical spec</strong> with ADRs. The brief must be explicitly approved before the spec is drafted — this is the only human gate in the pipeline.</p>
+    <ol class="steps">
+      <li>Orient — load project.yaml, rules, personas</li>
+      <li>Draft brief as <em>product-analyst</em> → <code>docs/briefs/active/YYYY-MM-DD-slug.md</code></li>
+      <li><strong>⏸ Pause for user approval</strong> — will not proceed until brief is approved</li>
+      <li>Draft spec + ADRs as <em>architect</em> → <code>docs/specs/active/</code>, <code>docs/decisions/</code></li>
+      <li>Refresh docs dashboard</li>
+    </ol>
+  </div>
+
+  <div class="skill-section">
+    <h3>/create-plan</h3>
+    <div class="skill-meta">
+      <span class="tag tag-persona">architect</span>
+      <span class="tag tag-persona">implementer</span>
+      <span class="tag tag-output">phased plan</span>
+    </div>
+    <p>Takes an <strong>approved spec</strong> and breaks it into phased work. Each phase ends in a testable, deployable state. Uses <code>templates/plan.md</code> with frontmatter, checkboxes, and a rule-compliance checklist.</p>
+    <ol class="steps">
+      <li>Validate spec has <code>status: approved</code></li>
+      <li>Phase the work — each phase ends in testable state</li>
+      <li>Architecture pre-flight — validate file paths, naming, structure against rules</li>
+      <li>Populate plan template with phases, related links, progress counters</li>
+      <li>Hand off to implementer (plan left at <code>status: draft</code>)</li>
+    </ol>
+  </div>
+
+  <div class="skill-section">
+    <h3>/design-tests</h3>
+    <div class="skill-meta">
+      <span class="tag tag-persona">tester</span>
+      <span class="tag tag-output">test plan</span>
+    </div>
+    <p>Produces a <strong>test plan</strong> (not test code) from the spec: which behaviours, at which level (unit/component/integration/e2e), what failure modes, what fixtures. Can run in parallel with plan creation.</p>
+  </div>
+</div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 5 — Skills detail: Implement → Review → Archive
+     ============================================================ -->
+<section class="slide" id="skills-impl">
+<div class="slide-inner">
+  <h2>Skills in Detail: Build, Review, Ship</h2>
+
+  <div class="skill-section">
+    <h3>/implement</h3>
+    <div class="skill-meta">
+      <span class="tag tag-persona">implementer</span>
+      <span class="tag tag-output">code + updated plan</span>
+    </div>
+    <p>Executes the plan <strong>phase by phase, task by task</strong>. Ticks checkboxes, moves the 🔄 cursor, runs tests after every task. Supports pause/resume.</p>
+    <ol class="steps">
+      <li>Promote plan to <code>status: in-progress</code>, locate 🔄 marker</li>
+      <li>Implement one task — minimum code, match conventions, don't expand scope</li>
+      <li>Verify — tests, linters, type checks must pass</li>
+      <li>Update plan — tick box, move 🔄, increment progress counter</li>
+      <li>Repeat until phase boundary or user pause</li>
+    </ol>
+  </div>
+
+  <div class="skill-section">
+    <h3>/resume-plan</h3>
+    <div class="skill-meta">
+      <span class="tag tag-persona">implementer</span>
+      <span class="tag tag-output">context → implement</span>
+    </div>
+    <p>Picks up a paused plan: finds the 🔄 marker, reads the latest Notes entry, loads brief &amp; spec for context, then hands off to <code>/implement</code>.</p>
+  </div>
+
+  <div class="skill-section">
+    <h3>/review-change</h3>
+    <div class="skill-meta">
+      <span class="tag tag-persona">reviewer</span>
+      <span class="tag tag-persona">security-reviewer <small>(conditional)</small></span>
+      <span class="tag tag-persona">tester <small>(conditional)</small></span>
+      <span class="tag tag-output">structured review</span>
+    </div>
+    <p>Reviews a PR or local diff against <strong>loaded rules and linked artifacts</strong>. Escalates to security-reviewer if the diff touches auth/crypto/PII, to tester if behaviour changes lack tests. Outputs: blocking, change-request, suggestion.</p>
+  </div>
+
+  <div class="skill-section">
+    <h3>/archive-plan</h3>
+    <div class="skill-meta">
+      <span class="tag tag-mechanic">mechanical</span>
+      <span class="tag tag-output">files → archive/</span>
+    </div>
+    <p>When a plan reaches <code>status: done</code>, atomically moves it and related artifacts (spec, brief, test-plan) from <code>active/</code> to <code>archive/</code>. Updates cross-references and refreshes the dashboard.</p>
+  </div>
+
+  <div class="skill-section">
+    <h3>/prepare-release</h3>
+    <div class="skill-meta">
+      <span class="tag tag-persona">release-engineer</span>
+      <span class="tag tag-gate">⏸ human approval</span>
+      <span class="tag tag-output">version + notes + tag</span>
+    </div>
+    <p>Drives the repo from green main to release-ready: version bump, release notes, annotated tag, CI trigger. <strong>Stops before external submission</strong> — publishing is always a human act.</p>
+  </div>
+</div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 6 — Cross-cutting skills
+     ============================================================ -->
+<section class="slide" id="skills-cross">
+<div class="slide-inner">
+  <h2>Cross-Cutting Skills</h2>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>🔄 /refresh-docs</h3>
+      <div class="skill-meta"><span class="tag tag-mechanic">mechanical</span></div>
+      <p>Regenerates the documentation dashboard at <code>docs/README.md</code>. Walks <code>active/</code> and <code>archive/</code> directories, reads frontmatter, writes tables. Invoked inline by most other skills after any doc mutation.</p>
+    </div>
+    <div class="card">
+      <h3>🔒 /security-review</h3>
+      <div class="skill-meta"><span class="tag tag-persona">security-reviewer</span><span class="tag tag-persona">architect</span></div>
+      <p>Deep standalone security review. Builds/validates a threat model, maps asset lifecycles, checks sanctioned primitives. Produces findings (Block / Change-required / Advisory) and ADRs for load-bearing decisions. Deeper than <code>/review-change</code>'s inline security pass.</p>
+    </div>
+    <div class="card">
+      <h3>🩺 /integrity-check</h3>
+      <div class="skill-meta"><span class="tag tag-mechanic">mechanical</span></div>
+      <p>Diagnostic tool: "is my <code>.ai/</code> install healthy?" Checks file presence, symlink resolution, frontmatter pointer validity, and scaffold version. <strong>Read-only</strong> — makes no changes. User-invoked, never automatic.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 7 — Status lifecycle
+     ============================================================ -->
+<section class="slide" id="lifecycle">
+<div class="slide-inner">
+  <h2>Document Lifecycle</h2>
+  <p>Every artifact (brief, spec, plan) has a <code>status</code> field in frontmatter. Skills enforce transitions — they refuse to consume artifacts in the wrong state.</p>
+  <div class="diagram"><pre>
+  <strong>Brief:</strong>      draft ──→ <span class="em-orange">approved</span> (human gate)
+
+  <strong>Spec:</strong>       draft ──→ in-review ──→ <span class="em-orange">approved</span>
+
+  <strong>Plan:</strong>       draft ──→ <span class="em-green">in-progress</span> ──→ done ──→ <span class="em-purple">archived</span>
+                         │            │
+                         │  ⏸ pause   │
+                         ▼            │
+                    (resume-plan) ────┘
+
+  <strong>Test Plan:</strong>  draft (standalone, archived with parent plan)
+
+  <strong>ADRs:</strong>       accepted │ superseded │ deprecated
+               (never moved — always in decisions/)
+  </pre></div>
+  <div class="spacer"></div>
+  <h3>Key Invariants</h3>
+  <ul>
+    <li><strong>Cross-linking:</strong> Brief ID → Spec → Plan → Test Plan. Every artifact knows its relatives via <code>related.*</code> frontmatter.</li>
+    <li><strong>Dashboard sync:</strong> <code>/refresh-docs</code> is triggered after every doc mutation — the dashboard is always current.</li>
+    <li><strong>Archive atomicity:</strong> <code>/archive-plan</code> moves all related files together or fails loudly.</li>
+    <li><strong>ADRs are permanent:</strong> Never archived, never deleted. They accumulate as project history.</li>
+  </ul>
+</div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 8 — The Fragmentation Problem
+     ============================================================ -->
+<section class="slide" id="fragmentation">
+<div class="slide-inner">
+  <h2>The Fragmentation Problem</h2>
+  <p class="subtitle">OK, so agents need rules, personas, and skills. But now multiply by tools and repos.</p>
+  <div class="two-col">
+    <div>
+      <h3 style="color:#f0883e;">Agent silos</h3>
+      <p>Claude Code, Gemini CLI, and Copilot CLI each expect different config files in different directories. Skills that work in one tool don't exist in another.</p>
+      <div class="diagram" style="margin-top:1rem;"><pre>
+Claude  → CLAUDE.md, .claude/skills/
+Gemini  → GEMINI.md, .gemini/commands/
+Copilot → .github/copilot-instructions.md</pre></div>
+      <p style="margin-top:1rem;">Three tools × three formats = <strong class="em-orange">constant busywork</strong> keeping them aligned.</p>
+    </div>
+    <div>
+      <h3 style="color:#f0883e;">Repo silos</h3>
+      <p>When you copy-paste rules and skills into each project, they inevitably drift. Good prompt engineering stays trapped in one repo.</p>
+      <div class="diagram" style="margin-top:1rem;"><pre>
+repo-A/  → rules v1.2, 8 skills
+repo-B/  → rules v1.0, 6 skills  ← stale
+repo-C/  → rules v1.3, 9 skills  ← custom fork
+           ↑ no single source of truth</pre></div>
+      <p style="margin-top:1rem;">Updates require <strong class="em-orange">N × manual merges</strong>.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 9 — The Answer: A Shared Submodule
+     ============================================================ -->
+<section class="slide" id="problem">
+<div class="slide-inner">
+  <h2>The Answer: One Submodule, Zero Drift</h2>
+  <p class="subtitle">A git submodule gives you a single source of truth that every repo and every agent tool shares.</p>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="highlight">✓</span> Shared Workflow</h3>
+      <p>Skills, rules, personas, and templates live in one place. <code>git submodule update&nbsp;--remote</code> brings every repo up to date in seconds.</p>
+    </div>
+    <div class="card">
+      <h3><span class="highlight">✓</span> No Rules Drift</h3>
+      <p>Coding standards, security rules, and stack conventions are versioned. Changes propagate to all repos — no copy-paste, no merge conflicts.</p>
+    </div>
+    <div class="card">
+      <h3><span class="highlight">✓</span> Agent-Agnostic</h3>
+      <p>Symlinks map one set of skills/rules to every tool's expected paths. Write once, use from Claude, Gemini, and Copilot identically.</p>
+    </div>
+    <div class="card">
+      <h3><span class="highlight">✓</span> Fork &amp; Adapt</h3>
+      <p>Fork the submodule for your company. Override per-project in <code>.ai-local/</code>. The scaffolding is opinionated but never locked-in.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 10 — Architecture (visual)
+     ============================================================ -->
+<section class="slide" id="solution">
+<div class="slide-inner">
+  <h2>Architecture: What's In the Box</h2>
+  <div class="diagram"><pre>
+your-repo/
+├── <span class="highlight">.ai/</span>                    ← git submodule (shared, forkable)
+│   ├── AGENTS.md            ← master entry point for all AI agents
+│   ├── project.yaml.example ← config template
+│   ├── <span class="em-green">skills/</span>              ← 11 slash commands (source of truth)
+│   ├── <span class="em-orange">rules/</span>
+│   │   ├── global/          ← universal rules (9 files)
+│   │   └── stacks/          ← per-stack rules (nodejs, dotnet, rust, …)
+│   ├── <span class="em-purple">personas/</span>            ← role definitions (architect, implementer, …)
+│   ├── templates/           ← doc templates (plan, spec, brief, …)
+│   └── .scripts/            ← install &amp; update scripts
+│
+├── <span class="highlight">.ai-local/</span>              ← project-specific (not in submodule)
+│   ├── project.yaml         ← your project config
+│   ├── rules/               ← project-specific rule overrides
+│   └── overrides/           ← persona overrides
+│
+├── CLAUDE.md ──────────────→ symlink to .ai/AGENTS.md
+├── GEMINI.md ──────────────→ symlink to .ai/AGENTS.md
+├── .github/copilot-instructions.md → symlink to .ai/AGENTS.md
+├── .claude/skills/*/SKILL.md ────→ per-file symlinks to .ai/skills/
+└── .gemini/commands/*.toml ──────→ per-file symlinks to .ai/.gemini/commands/
+  </pre></div>
+  <p style="margin-top:1rem; color:#8b949e; font-size:0.92rem;">The <span class="highlight">submodule</span> holds everything reusable. <span class="highlight">.ai-local/</span> holds everything project-specific. Symlinks bridge them to each agent tool's expected paths.</p>
+</div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 11 — Why Each Part
+     ============================================================ -->
+<section class="slide" id="parts">
+<div class="slide-inner">
+  <h2>Anatomy: Why Each Part Exists</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h3>📘 AGENTS.md</h3>
+      <p><strong>Why:</strong> Single entry point all three AI tools resolve to (via symlinks). Sets the routing contract: "read project.yaml first, load rules by precedence, adopt your persona."</p>
+    </div>
+    <div class="card">
+      <h3>⚙️ project.yaml</h3>
+      <p><strong>Why:</strong> Per-project manifest declaring name, stack, which rules to load, which personas to enable, and doc paths. Lives in <code>.ai-local/</code> so each repo customises without touching the submodule.</p>
+    </div>
+    <div class="card">
+      <h3>🛠️ Skills</h3>
+      <p><strong>Why:</strong> Reusable slash commands (spec, plan, implement, review, …) that form a complete dev workflow. Written once in SKILL.md format, symlinked to Claude, Copilot, and Gemini.</p>
+    </div>
+    <div class="card">
+      <h3>📏 Rules</h3>
+      <p><strong>Why:</strong> Coding standards the agent must follow. <strong>Global</strong> rules are universal (testing, secrets, version control). <strong>Stack</strong> rules teach the language/framework. <strong>Local</strong> rules override per-project.</p>
+    </div>
+    <div class="card">
+      <h3>🎭 Personas</h3>
+      <p><strong>Why:</strong> Role definitions (architect, implementer, reviewer, …) that shape <em>how</em> the agent works — tone, focus, escalation triggers. Stack-agnostic; rules teach the stack.</p>
+    </div>
+    <div class="card">
+      <h3>📄 Templates</h3>
+      <p><strong>Why:</strong> Standardised document shapes (plan, spec, brief) with frontmatter schemas. Skills reference templates when creating docs — guaranteeing consistent structure and cross-linking.</p>
+    </div>
+    <div class="card">
+      <h3>🔗 Symlinks</h3>
+      <p><strong>Why:</strong> Git stores them as mode 120000 — they survive clone. Per-file symlinks (not directory) because Windows git checkout creates file symlinks only. Zero maintenance after install.</p>
+    </div>
+    <div class="card">
+      <h3>📂 .ai-local/</h3>
+      <p><strong>Why:</strong> Project-specific config that can't live inside a shared submodule. Rule overrides, persona tweaks, and your project.yaml live here. Committed to your repo, not the submodule.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 12 — Rules deep dive
+     ============================================================ -->
+<section class="slide" id="rules">
+<div class="slide-inner">
+  <h2>Rules: Layered &amp; Stack-Specific</h2>
+  <p>Rules load in precedence order. A local rule with the same filename replaces a global one.</p>
+  <div class="two-col">
+    <div>
+      <h3 style="color:#7ee787;">Global Rules (9 files)</h3>
+      <ul>
+        <li>01 — Principles</li>
+        <li>02 — Agent Conduct</li>
+        <li>03 — Documentation</li>
+        <li>04 — Doc Lifecycle</li>
+        <li>05 — Version Control</li>
+        <li>06 — Testing</li>
+        <li>07 — Dependencies</li>
+        <li>08 — Secrets &amp; Data</li>
+        <li>09 — Observability &amp; Errors</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="color:#f0883e;">Stack Rules (8 files each)</h3>
+      <ul>
+        <li>01 — Constraints</li>
+        <li>02 — Testing</li>
+        <li>03 — Performance</li>
+        <li>04 — API Design</li>
+        <li>05 — Folder Structure</li>
+        <li>06 — Error Handling</li>
+        <li>07 — Build &amp; Release</li>
+        <li>08 — Module / Library / Crate Conventions</li>
+      </ul>
+      <p style="margin-top:0.8rem; font-size:0.9rem;">
+        Available stacks: <code>nodejs</code>, <code>dotnet</code>, <code>rust</code>, <code>react-native</code>, <code>nextjs</code>
+      </p>
+    </div>
+  </div>
+  <div class="diagram" style="margin-top:1.5rem;"><pre>
+  project.yaml:
+    rules:
+      load:
+        - .ai/rules/global/*           ← always
+        - .ai/rules/stacks/dotnet/*    ← your stack
+        - .ai-local/rules/*            ← your overrides
+  </pre></div>
+</div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 13 — Install & Update
+     ============================================================ -->
+<section class="slide" id="install">
+<div class="slide-inner">
+  <h2>Getting Started</h2>
+  <div class="two-col">
+    <div>
+      <h3 style="color:#7ee787;">Install (once)</h3>
+      <ol>
+        <li>Add the submodule:
+          <pre style="margin:0.5rem 0;"><code>git submodule add -b main \
+  --name dot-ai &lt;url&gt; .ai</code></pre>
+        </li>
+        <li>Run the install script:
+          <pre style="margin:0.5rem 0;"><code># PowerShell (Windows)
+.ai/.scripts/install-symlinks.ps1
+
+# Shell (Linux / macOS)
+sh .ai/.scripts/install-symlinks.sh</code></pre>
+        </li>
+        <li>Edit <code>.ai-local/project.yaml</code> for your project</li>
+        <li>Commit everything</li>
+      </ol>
+    </div>
+    <div>
+      <h3 style="color:#f0883e;">Update (periodic)</h3>
+      <pre style="margin:0.5rem 0;"><code># PowerShell
+.ai/.scripts/update-submodule.ps1
+
+# Shell
+sh .ai/.scripts/update-submodule.sh</code></pre>
+      <p>The update script:</p>
+      <ul>
+        <li>Pulls the latest submodule (<code>--remote</code>)</li>
+        <li>Prunes dead symlinks (removed skills/commands)</li>
+        <li>Creates new symlinks (added skills/commands)</li>
+        <li>Stages everything for commit</li>
+      </ul>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <h3>Cloning a repo that uses dot-ai</h3>
+  <pre><code>git clone -c core.symlinks=true &lt;repo-url&gt;
+cd &lt;repo&gt;
+git submodule update --init</code></pre>
+  <p style="font-size:0.9rem; color:#8b949e; margin-top:0.5rem;">
+    <code>core.symlinks=true</code> is needed on Windows so git creates real symlinks instead of text files.
+  </p>
+</div>
+</section>
+
+
+<!-- ============================================================
+     SLIDE 14 — Fork & Adapt
+     ============================================================ -->
+<section class="slide" id="adapt">
+<div class="slide-inner" style="text-align:center;">
+  <h2>Fork &amp; Make It Yours</h2>
+  <p style="max-width:640px; margin:0 auto 2rem;">
+    dot-ai is <em>partially company-specific by design</em>. Fork the repo, then:
+  </p>
+  <div class="card-grid" style="text-align:left;">
+    <div class="card">
+      <h3>Add your stack</h3>
+      <p>Create <code>rules/stacks/your-stack/</code> with 8 rule files following the existing pattern. Your conventions, your tools.</p>
+    </div>
+    <div class="card">
+      <h3>Tune personas</h3>
+      <p>Edit <code>personas/*.md</code> to match your team's roles, tone, and escalation policies.</p>
+    </div>
+    <div class="card">
+      <h3>Add skills</h3>
+      <p>Drop a <code>SKILL.md</code> in <code>skills/your-skill/</code>. The install script auto-discovers and symlinks it to all agents.</p>
+    </div>
+    <div class="card">
+      <h3>Override per-project</h3>
+      <p>Put project-specific rules in <code>.ai-local/rules/</code> and persona tweaks in <code>.ai-local/overrides/</code>. They stay in your repo, not the submodule.</p>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p style="font-size:1.5rem; color:#f0f6fc; font-weight:600; margin-top:1rem;">
+    One scaffolding. Every agent. Every project.
+  </p>
+</div>
+</section>
+
+<!-- ============================================================
+     NAV DOT SCRIPT
+     ============================================================ -->
+<script>
+(function() {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const nav = document.getElementById('dotnav');
+  const labels = ['Title','Guardrails','Workflow','Spec→Plan','Build→Ship','Cross-cutting','Lifecycle','Fragmentation','Answer','Architecture','Anatomy','Rules','Install','Adapt'];
+  let current = 0;
+
+  // Build nav dots
+  slides.forEach((s, i) => {
+    const a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.title = labels[i] || '';
+    a.addEventListener('click', e => { e.preventDefault(); goTo(i); });
+    nav.appendChild(a);
+  });
+
+  // Track current slide via IntersectionObserver
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        current = slides.indexOf(e.target);
+        nav.querySelectorAll('a').forEach(a => a.classList.remove('active'));
+        const dot = nav.querySelector(`a[href="#${e.target.id}"]`);
+        if (dot) dot.classList.add('active');
+      }
+    });
+  }, { threshold: 0.4 });
+  slides.forEach(s => observer.observe(s));
+
+  function goTo(i) {
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    slides[i].scrollIntoView({ behavior: 'smooth' });
+    current = i;
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', e => {
+    switch (e.key) {
+      case 'ArrowDown': case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); goTo(current + 1); break;
+      case 'ArrowUp': case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); goTo(current - 1); break;
+      case 'Home':
+        e.preventDefault(); goTo(0); break;
+      case 'End':
+        e.preventDefault(); goTo(slides.length - 1); break;
+    }
+  });
+})();
+</script>
+</body>
+</html>

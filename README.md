@@ -1,9 +1,14 @@
 # `.ai/` — How to use this scaffold
 
-This folder is a portable AI collaboration scaffold. It tells any
-reasonably capable AI coding tool — Claude Code, Gemini CLI,
-GitHub Copilot, Cursor, Codex, or a human following the same
-procedure — how to work in this project consistently.
+> **Interactive overview:** open [`intro.html`](intro.html) in a
+> browser for a visual walk-through of the scaffold, its skills,
+> and the workflow they form.
+
+This folder is a portable AI collaboration scaffold, distributed as
+a **git submodule**. It tells any reasonably capable AI coding
+tool — Claude Code, Gemini CLI, GitHub Copilot CLI, Cursor, Codex,
+or a human following the same procedure — how to work in this
+project consistently.
 
 If you are an AI agent, start with `AGENTS.md`, not this file.
 This file is for humans.
@@ -13,28 +18,47 @@ This file is for humans.
 ## What's in the box
 
 ```text
-.ai/
-├── AGENTS.md           ← entry point for AI agents; routes to project.yaml
-├── project.yaml        ← per-project manifest; names stacks, personas, paths, rules
-├── personas/           ← stack-agnostic roles (architect, implementer, reviewer, …)
+.ai/                                ← git submodule (shared, forkable)
+├── AGENTS.md                       ← entry point for AI agents
+├── project.yaml.example            ← config template; copy to .ai-local/
+├── personas/                       ← stack-agnostic roles (7 personas)
 ├── rules/
-│   ├── global/         ← org-wide rules; always loaded
-│   └── stacks/<name>/  ← stack-specific rules; loaded per project.yaml
-├── skills/             ← procedures a user invokes (create-spec, review-change, …)
-└── templates/          ← skeletons for generated docs (brief, spec, plan, test-plan, ADR, review)
+│   ├── global/                     ← org-wide rules; always loaded (9 files)
+│   └── stacks/                     ← per-stack rules; loaded per project.yaml
+│       ├── dotnet/                 ← .NET / C# (8 files)
+│       ├── nodejs/                 ← Node.js / TypeScript (8 files)
+│       ├── rust/                   ← Rust (8 files)
+│       ├── nextjs/                 ← Next.js additions
+│       └── react-native/           ← React Native additions
+├── skills/                         ← 11 slash commands (source of truth)
+├── templates/                      ← skeletons for generated docs
+├── terminology/                    ← shared vocabulary (global.md)
+├── .gemini/commands/               ← Gemini CLI TOML shims (auto-generated)
+├── .scripts/                       ← install & update scripts (ps1 + sh)
+└── intro.html                      ← visual presentation of this scaffold
 ```
 
-Plus, at the repo root:
+The install script creates project-specific config and symlinks at
+the **repo root**:
 
 ```text
+.ai-local/                          ← project-specific (NOT in submodule)
+├── project.yaml                    ← your project's routing contract
+├── rules/                          ← project-specific rule overrides
+└── overrides/                      ← additive persona extensions per stack
+
+CLAUDE.md ──────────────────────→ symlink to .ai/AGENTS.md
+GEMINI.md ──────────────────────→ symlink to .ai/AGENTS.md
+.github/copilot-instructions.md → symlink to .ai/AGENTS.md
+
+.claude/skills/*/SKILL.md ─────→ per-file symlinks to .ai/skills/
+.gemini/commands/*.toml ────────→ per-file symlinks to .ai/.gemini/commands/
+
 docs/
 ├── briefs/   active/ + archive/    ← product-framed requirements
 ├── specs/    active/ + archive/    ← architectural specs
 ├── plans/    active/ + archive/    ← phased implementation plans + test plans
 └── decisions/                      ← ADRs (never archived)
-
-.claude/commands/      ← Claude Code slash commands that invoke skills
-.gemini/commands/      ← Gemini CLI slash commands that invoke skills
 ```
 
 ---
@@ -73,17 +97,56 @@ Three rules hold this together:
 
 ## Quick start
 
-1. **Clone and install the scaffold.** `project.yaml` is already
-   filled in for this project. If you are porting to a new
-   project, copy `project.yaml.example` to `project.yaml` and fill
-   in the fields.
-2. **Pick your tool.** See "Tool setup" below. Once set up, you
-   can type `/create-spec` or `/implement` (or
-   the tool's equivalent) and the AI will execute the matching
-   skill.
-3. **Run `/integrity-check`.** It reports whether the local
-   install is wired up correctly — paths resolve, personas
-   referenced by skills exist, templates are present.
+### First-time setup (new project)
+
+1. **Add the submodule:**
+   ```bash
+   git submodule add -b main --name dot-ai <url> .ai
+   ```
+2. **Run the install script:**
+   ```bash
+   # PowerShell (Windows)
+   .ai/.scripts/install-symlinks.ps1
+
+   # Shell (Linux / macOS)
+   sh .ai/.scripts/install-symlinks.sh
+   ```
+   This creates all symlinks, scaffolds `docs/` and `.ai-local/`,
+   and stages everything for commit.
+3. **Edit `.ai-local/project.yaml`** — fill in your project name,
+   stacks, and any path overrides.
+4. **Commit everything** and push.
+
+### Cloning a repo that already uses dot-ai
+
+```bash
+git clone -c core.symlinks=true <repo-url>
+cd <repo>
+git submodule update --init
+```
+
+`core.symlinks=true` is needed on Windows so git creates real
+symlinks instead of text files.
+
+### Updating to the latest scaffold
+
+```bash
+# PowerShell (Windows)
+.ai/.scripts/update-submodule.ps1
+
+# Shell (Linux / macOS)
+sh .ai/.scripts/update-submodule.sh
+```
+
+The update script pulls the latest submodule (`--remote`), prunes
+dead symlinks for removed skills/commands, creates new symlinks
+for added ones, and stages everything.
+
+### Using skills
+
+Once set up, invoke skills by name — `/create-spec`,
+`/implement`, etc. — using your tool's slash-command mechanism.
+Run **`/integrity-check`** to verify the install is healthy.
 
 ---
 
@@ -165,10 +228,10 @@ resolution, version record.
 
 ## How files connect
 
-### `project.yaml` is the routing contract
+### `.ai-local/project.yaml` is the routing contract
 
-Every skill's first step is "read `project.yaml`." From that
-single file, a skill learns:
+Every skill's first step is "read `.ai-local/project.yaml`." From
+that single file, a skill learns:
 
 - **Which rules to load** (`rules.load`).
 - **Which personas are enabled** (`personas.enabled`) and what
@@ -201,10 +264,10 @@ it to decide when the skill should run — plus numbered Steps.
 To run a skill, the AI loads `SKILL.md` and follows the Steps.
 
 You invoke a skill by name (`/create-spec` or the
-tool's equivalent). The tool's slash-command file
-(`.claude/commands/create-spec.md`,
-`.gemini/commands/create-spec.toml`) is a thin
-wrapper that tells the AI which `SKILL.md` to load.
+tool's equivalent). The tool's slash-command binding
+(`.claude/skills/create-spec/SKILL.md`,
+`.gemini/commands/create-spec.toml`) is a symlink or thin
+wrapper that points the AI at the canonical `SKILL.md`.
 
 ### Templates are the shape of generated docs
 
@@ -234,23 +297,22 @@ the new shape.
 
 The scaffold is tool-agnostic. Any AI coding tool that can read
 the repo's files and follow a Markdown procedure can run a
-skill. The `.claude/commands/` and `.gemini/commands/`
+skill. The `.claude/skills/` and `.gemini/commands/`
 directories provide native slash-command bindings for Claude
-Code and Gemini CLI — other tools can invoke skills by name
-("run the `implement` skill") or by pointing the tool
-at `SKILL.md` directly.
+Code / Copilot CLI and Gemini CLI respectively — other tools can
+invoke skills by name ("run the `implement` skill") or by
+pointing the tool at `SKILL.md` directly.
 
-### Claude Code
+### Claude Code / GitHub Copilot CLI
 
-1. Claude Code auto-discovers slash commands under
-   `.claude/commands/*.md`. No extra configuration needed.
-2. In the Claude Code CLI, type `/` to list available
-   commands. Every skill has one: `/create-spec`,
-   `/create-plan`, `/implement`, etc.
+1. Both tools auto-discover skills under
+   `.claude/skills/*/SKILL.md`. No extra configuration needed.
+2. Type `/` to list available commands. Every skill has one:
+   `/create-spec`, `/create-plan`, `/implement`, etc.
 3. Commands accept arguments after the name, e.g.
    `/implement docs/plans/active/2026-04-16-login.md`.
-4. `.claude/settings.local.json` holds your local tool
-   permissions; it is machine-specific and should not be
+4. `.claude/settings.local.json` (Claude Code) holds your local
+   tool permissions; it is machine-specific and should not be
    committed.
 
 ### Gemini CLI
@@ -265,7 +327,7 @@ at `SKILL.md` directly.
    a minimum and rely on the agent to read files via its own
    tooling.
 
-### Other tools (Copilot, Cursor, Codex, any LLM)
+### Other tools (Cursor, Codex, any LLM)
 
 No native slash commands, but the scaffold still works:
 
@@ -274,8 +336,8 @@ No native slash commands, but the scaffold still works:
 - Invoke a skill by name: "Run the `implement` skill
   against `docs/plans/active/…`."
 - The tool will (or should) load the skill's `SKILL.md`,
-  then `project.yaml`, then the relevant rules and persona,
-  and follow the numbered Steps.
+  then `.ai-local/project.yaml`, then the relevant rules and
+  persona, and follow the numbered Steps.
 
 If a tool cannot do that reliably, it is not a fit for this
 scaffold.
@@ -285,17 +347,17 @@ scaffold.
 ## Extending the scaffold
 
 - **Add a new stack**: create `rules/stacks/<name>/`, add
-  numbered rule files, add `<name>` to `project.yaml`
+  numbered rule files, add `<name>` to `.ai-local/project.yaml`
   `project.stacks` and to `rules.load`.
 - **Add a new skill**: create `skills/<name>/SKILL.md` with
-  frontmatter and numbered Steps. Add matching slash-command
-  files under `.claude/commands/` and `.gemini/commands/`.
-  Reference the skill from this guide's Task cookbook.
+  frontmatter and numbered Steps. Add a matching Gemini TOML in
+  `.gemini/commands/`. Run the update script to pick up new
+  symlinks, or create them manually.
 - **Add a new persona**: create `personas/<name>.md`
-  (stack-agnostic), add `<name>` to `project.yaml`
+  (stack-agnostic), add `<name>` to `.ai-local/project.yaml`
   `personas.enabled`. Optionally add stack overrides at
-  `overrides/<stack>/<name>.md` — these are *additive*, not
-  replacement.
+  `.ai-local/overrides/<stack>/<name>.md` — these are *additive*,
+  not replacement.
 - **Propose a rule change**: a normal PR against the relevant
   file under `rules/`. The rule-file owner (the team named by
   the path) reviews.
@@ -306,23 +368,26 @@ scaffold.
 
 | Symptom | First place to look |
 | --- | --- |
-| Skill claims it cannot find a path | `project.yaml` `paths.*` |
-| Skill invokes a missing persona | `project.yaml` `personas.enabled` + the `personas/` folder |
-| Rule contradicts another rule | Load order in `project.yaml` `rules.load` — later wins by same filename |
+| Skill claims it cannot find a path | `.ai-local/project.yaml` `paths.*` |
+| Skill invokes a missing persona | `.ai-local/project.yaml` `personas.enabled` + the `personas/` folder |
+| Rule contradicts another rule | Load order in `.ai-local/project.yaml` `rules.load` — later wins by same filename |
 | Doc archived but still shows as active | Re-run `/refresh-docs` |
-| Slash command missing in Claude Code | Check `.claude/commands/<name>.md` exists |
-| Slash command missing in Gemini CLI | Check `.gemini/commands/<name>.toml` exists |
+| Slash command missing in Claude Code / Copilot | Check `.claude/skills/<name>/SKILL.md` symlink exists and resolves |
+| Slash command missing in Gemini CLI | Check `.gemini/commands/<name>.toml` symlink exists and resolves |
+| Symlinks show as text files (Windows) | Clone with `git clone -c core.symlinks=true`; requires Developer Mode |
 | Unsure if install is healthy | Run `/integrity-check` |
 
 ---
 
 ## Further reading
 
-- `.ai/AGENTS.md` — agent-facing entry point.
-- `.ai/project.yaml` — the routing contract.
-- `.ai/rules/global/01-principles.md` — the principles under
+- [`intro.html`](intro.html) — visual walk-through of the
+  scaffold, skills, and workflow.
+- `AGENTS.md` — agent-facing entry point.
+- `.ai-local/project.yaml` — the routing contract.
+- `rules/global/01-principles.md` — the principles under
   which everything else operates.
-- `.ai/rules/global/04-doc-lifecycle.md` — the state machines
+- `rules/global/04-doc-lifecycle.md` — the state machines
   and archive cascade.
 - Any `skills/<name>/SKILL.md` — the exact procedure a skill
   runs.

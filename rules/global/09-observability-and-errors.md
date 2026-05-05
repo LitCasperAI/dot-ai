@@ -29,8 +29,8 @@ good looks like regardless of stack.
   Stack rules declare the exact format.
 - Log levels carry meaning:
   - `error` — something broke that needs attention.
-  - `warn`  — something unexpected, but handled.
-  - `info`  — one-line record of a significant event.
+  - `warn` — something unexpected, but handled.
+  - `info` — one-line record of a significant event.
   - `debug` — developer detail, off in production.
 - Do not log in hot loops. Do not log the same event from every
   layer of the stack; pick one.

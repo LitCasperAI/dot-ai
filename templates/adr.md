@@ -1,11 +1,11 @@
 ---
-id: NNNN                    # monotonic, left-padded to 4 digits
+id: NNNN # monotonic, left-padded to 4 digits
 type: adr
-status: proposed            # proposed → accepted → superseded
+status: proposed # proposed → accepted → superseded
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 owner: architect
-supersedes: null            # ADR id this replaces, or null
+supersedes: null # ADR id this replaces, or null
 related:
   spec: <path to the spec that motivated this ADR, or null>
 ---

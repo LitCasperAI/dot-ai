@@ -1,8 +1,8 @@
 # Node.js Module Conventions
 
 How individual modules are authored, split, and composed. This
-file covers *within-module* structure; `05-folder-structure.md`
-covers *between-module* organisation.
+file covers _within-module_ structure; `05-folder-structure.md`
+covers _between-module_ organisation.
 
 ---
 
@@ -56,7 +56,7 @@ features/billing/
     intended for cross-feature use).
   - Public domain types.
   - Public domain errors.
-  Internals (repositories, private helpers) are not re-exported.
+    Internals (repositories, private helpers) are not re-exported.
 - **`export *` from a barrel is rejected.** Be explicit about
   what the feature exposes.
 

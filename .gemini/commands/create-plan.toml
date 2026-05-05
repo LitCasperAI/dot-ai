@@ -3,7 +3,7 @@ description = "Turn an approved spec into a phased implementation plan using tem
 
 prompt = """
 Load `.ai/skills/create-plan/SKILL.md` and execute its
-procedure. Read `.ai/project.yaml` first to resolve paths,
+procedure. Read `.ai-local/project.yaml` first to resolve paths,
 personas, and rules. Follow the numbered Steps in `SKILL.md`
 exactly — do not improvise.
 

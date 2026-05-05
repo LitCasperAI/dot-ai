@@ -3,7 +3,7 @@ description = "Atomically archive a done plan along with its related brief, spec
 
 prompt = """
 Load `.ai/skills/archive-plan/SKILL.md` and execute its
-procedure. Read `.ai/project.yaml` first to resolve paths.
+procedure. Read `.ai-local/project.yaml` first to resolve paths.
 Follow the numbered Steps in `SKILL.md` exactly — do not
 improvise. Preflight before moving any file.
 

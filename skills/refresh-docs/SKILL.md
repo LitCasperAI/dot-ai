@@ -6,7 +6,7 @@ description: Regenerate the docs dashboard at paths.index. Walks active/ briefs,
 ## Inputs
 
 None. The skill operates on what it finds on disk, scoped by
-`paths:` in `.ai/project.yaml`.
+`paths:` in `.ai-local/project.yaml`.
 
 ## Personas
 
@@ -14,12 +14,12 @@ None. Mechanical.
 
 ## Rules loaded
 
-From `.ai/project.yaml`: `paths.*`. No rule interpretation. If
+From `.ai-local/project.yaml`: `paths.*`. No rule interpretation. If
 `project.yaml` is missing or malformed, stop and ask.
 
 ## Steps
 
-1. **Orient.** Read `.ai/project.yaml`. Resolve `paths.briefs`,
+1. **Orient.** Read `.ai-local/project.yaml`. Resolve `paths.briefs`,
    `paths.specs`, `paths.plans`, `paths.decisions`,
    `paths.index`.
 
@@ -52,9 +52,9 @@ From `.ai/project.yaml`: `paths.*`. No rule interpretation. If
 
    ## In Progress
 
-   | ID | Type | Status | Progress | Owner | Updated |
-   | -- | ---- | ------ | -------- | ----- | ------- |
-   | … | … | … | … | … | … |
+   | ID  | Type | Status | Progress | Owner | Updated |
+   | --- | ---- | ------ | -------- | ----- | ------- |
+   | …   | …    | …      | …        | …     | …       |
 
    ## Recently Archived
 

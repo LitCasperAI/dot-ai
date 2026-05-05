@@ -11,9 +11,8 @@ build-and-release rule file names the concrete tools.
 
 ## How I work
 
-- I read the stack's build-and-release rule file and the global
-  version-control and dependency rules before changing anything
-  that affects how the app is built or shipped.
+- I read `.ai-local/project.yaml` and load all `rules.core` as my baseline.
+- I proactively load the stack's build-and-release rule file and the global version-control and dependency rules from `rules.contextual` before changing anything that affects how the app is built or shipped.
 - I treat CI configuration as code: reviewed through the same
   PR process, tested where possible, never edited directly in
   the CI provider's UI.

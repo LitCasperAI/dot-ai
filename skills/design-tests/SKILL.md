@@ -23,19 +23,19 @@ description: Turn an approved spec or an in-progress plan into a test plan the i
 
 ## Rules loaded
 
-From `.ai/project.yaml`: all entries under `rules.load`,
-particularly `global/06-testing.md` and the stack's testing
-rule file. The test plan enforces those rules — query
-conventions, mocking posture, test-level choices — rather than
-inventing its own.
+From `.ai-local/project.yaml`: all entries under `rules.core`,
+plus relevant entries from `rules.contextual` (specifically 
+`06-testing.md` and the stack's testing rule file). The test 
+plan enforces those rules — query conventions, mocking posture, 
+test-level choices — rather than inventing its own.
 
 ## Steps
 
-1. **Orient.** Read `.ai/project.yaml`. Load the spec (directly
+1. **Orient.** Read `.ai-local/project.yaml`. Load the spec (directly
    or via the plan's `related.spec`). Require spec
    `status: approved`; if anything else, stop and surface. Load
-   the `tester` persona and every rule file listed under
-   `rules.load`. Resolve `paths.plans`.
+   the `tester` persona, all `rules.core`, and required 
+   `rules.contextual` files. Resolve `paths.plans`.
 
 2. **Enumerate behaviours (tester).** Walk the spec's scope
    section. For each user-observable behaviour, write one line:
@@ -46,6 +46,7 @@ inventing its own.
 
 3. **Assign test levels (tester).** For each behaviour, name
    the lowest honest level that proves it:
+
    - **Unit** — pure logic, helpers, reducers.
    - **Component** — rendered UI given props, queried by role or
      label per the stack's testing rules.
@@ -54,8 +55,8 @@ inventing its own.
      `global/06-testing.md` requires it.
    - **End-to-end** — a user journey that must be proven
      against the running app.
-   A behaviour may appear at more than one level if the risk
-   warrants it; justify the duplication in one line.
+     A behaviour may appear at more than one level if the risk
+     warrants it; justify the duplication in one line.
 
 4. **Name failure modes (tester).** For each behaviour, name at
    least one way it could break and the test that would catch
@@ -78,6 +79,7 @@ inventing its own.
 
 7. **Compose the test plan.** Produce a Markdown document
    structured as:
+
    - **Scope** — one paragraph, which parts of the spec are
      covered and which are deferred.
    - **Behaviours** — numbered list from step 2.
@@ -94,6 +96,7 @@ inventing its own.
    Copy `.ai/templates/test-plan.md` to
    `<paths.plans>/active/YYYY-MM-DD-<id>-tests.md` and
    populate:
+
    - `id` copied from the spec;
    - `type: test-plan`, `status: draft`, `owner: tester`;
    - `related.brief` copied from the spec;

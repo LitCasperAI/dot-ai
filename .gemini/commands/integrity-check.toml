@@ -2,8 +2,7 @@
 description = "Report on the local health of the .ai/ installation. Four check categories — installation gate, content presence, pointer resolution, version record. Read-only."
 
 prompt = """
-Load `.ai/skills/integrity-check/SKILL.md` and execute its
-procedure. Follow the numbered Steps in `SKILL.md` exactly — do
-not improvise. Print the Markdown report and stop. Make no
-changes to any file.
+Check for the existence of `SCAFFOLD_VERSION` in the current directory (Source Mode) or `.ai/SCAFFOLD_VERSION` (Consumer Mode). 
+Load the corresponding `SKILL.md` from either `skills/integrity-check/SKILL.md` or `.ai/skills/integrity-check/SKILL.md` and execute its procedure. 
+Follow the numbered Steps in the loaded `SKILL.md` exactly — do not improvise. The check is read-only.
 """

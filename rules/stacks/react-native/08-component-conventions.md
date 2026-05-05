@@ -1,8 +1,8 @@
 # React Native Component Conventions
 
 How individual components are authored, split, and wrapped. This
-file covers *within-component* structure; `05-folder-structure.md`
-covers *between-component* organisation.
+file covers _within-component_ structure; `05-folder-structure.md`
+covers _between-component_ organisation.
 
 ---
 

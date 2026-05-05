@@ -1,0 +1,41 @@
+#!/bin/bash
+# pre-push hook: Agentic Safety Circuit Breaker
+# Blocks destructive pushes if an AI agent is detected in the environment.
+
+PROTECTED_BRANCHES=("main" "master" "production" "release")
+IS_AGENT=false
+
+# Detect common AI agent environment variables
+if [ "$GEMINI_CLI" = "true" ] || [ "$AI_AGENT" = "true" ] || [ "$CLAUDE_CODE" = "true" ]; then
+    IS_AGENT=true
+fi
+
+if [ "$IS_AGENT" = true ]; then
+    while read local_ref local_sha remote_ref remote_sha
+    do
+        # 1. Block direct pushes to protected branches
+        for branch in "${PROTECTED_BRANCHES[@]}"; do
+            if [[ "$remote_ref" == "refs/heads/$branch" ]]; then
+                echo "FATAL: AI Agent detected. Direct pushes to '$branch' are prohibited by the Safety Circuit Breaker."
+                echo "Action: Please push to a feature branch and create a Pull Request."
+                exit 1
+            fi
+        done
+
+        # 2. Block force pushes (non-fast-forward)
+        if [ "$remote_sha" != "0000000000000000000000000000000000000000" ]; then
+            if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+                echo "FATAL: AI Agent detected. Force pushing (non-fast-forward) is strictly prohibited."
+                exit 1
+            fi
+        done
+        
+        # 3. Block branch deletions
+        if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
+            echo "FATAL: AI Agent detected. Branch deletion is prohibited via push."
+            exit 1
+        fi
+    done
+fi
+
+exit 0

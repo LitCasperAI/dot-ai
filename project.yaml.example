@@ -1,40 +1,48 @@
 # Per-project manifest. Agents read this file first every session.
-# On install, this is copied to `.ai-local/project.yaml`.
-# Edit the copy for your project; this `.example` stays as the
-# scaffold reference.
+# On install, copy to `.ai-local/project.yaml` and fill in project-specific
+# fields. Commit the copy; this `.example` stays as the scaffold
+# reference.
 #
-# All paths in rules.load are relative to the repo root.
+# SECURITY: Never store secrets, API keys, or sensitive local-only paths
+# in .ai-local/project.yaml. This file is intended to be committed.
 
 project:
   name: "example-mobile-app"
   type: react-native
   stacks: [react-native]
-  # domain: payments   # set when a domain terminology set applies
+  domain: retail
 
 rules:
-  load:
+  # Core rules are loaded at the start of every session.
+  core:
+    - .ai/rules/global/00-intent-routing.md
+    - .ai/rules/global/01-principles.md
+    - .ai/rules/global/02-agent-conduct.md
+    - .ai/rules/global/11-validation-discipline.md
+    - .ai/rules/global/14-safety-enforcement.md
+    - .ai/rules/global/15-memory-management.md
+  # Contextual rules are loaded dynamically based on the active skill or persona.
+  contextual:
     - .ai/rules/global/*
     - .ai/rules/stacks/react-native/*
-    # - .ai-local/rules/*   # enable once .ai-local/rules/ has content
+    - .ai-local/rules/*
 
 personas:
-  enabled: [architect, product-analyst, implementer]
+  enabled: [architect, auditor, dependency-manager, designer, implementer, product-analyst, release-engineer, reviewer, security-reviewer, tester]
   ownership:
     architect:       [specs, decisions]
     product-analyst: [briefs]
     implementer:     [plans]
-  # Reviewer, tester, and security-reviewer come online in
-  # Stage 6. Do not list a persona whose file does not yet
-  # exist — agents will try to load it and fail.
+    designer:        [design_system, design_system_global]
 
-# terminology:
-#   load: [global]
-# Terminology files are introduced in a later stage. Uncomment
-# once `.ai/terminology/global.md` exists.
+terminology:
+  load: [global]
 
 paths:
   briefs: docs/briefs
   specs: docs/specs
   plans: docs/plans
   decisions: docs/decisions
+  design_system: docs/design-system.md
+  design_system_global: .ai/design-system.md
   index: docs/README.md

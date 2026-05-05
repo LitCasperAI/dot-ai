@@ -1,0 +1,11 @@
+# AUTO-GENERATED from .ai/skills/branch-cleanup/SKILL.md — do not edit by hand.
+description = "Cleanup local and remote branches"
+
+prompt = """
+Load `.ai/skills/branch-cleanup/SKILL.md` and execute its
+procedure. Read `.ai-local/project.yaml` first to resolve paths,
+personas, and rules. Follow the numbered Steps in `SKILL.md`
+exactly — do not improvise.
+
+Arguments: {{args}}
+"""

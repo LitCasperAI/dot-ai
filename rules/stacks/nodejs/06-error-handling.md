@@ -37,9 +37,7 @@ operators both benefit.
     "error": {
       "code": "USER_NOT_FOUND",
       "message": "User not found",
-      "details": [
-        { "path": "userId", "message": "Unknown user" }
-      ]
+      "details": [{ "path": "userId", "message": "Unknown user" }]
     }
   }
   ```
@@ -74,8 +72,7 @@ operators both benefit.
 - **Errors are logged once, at the boundary where they are
   handled.** A service function that throws and a route
   handler that logs and re-throws duplicate the log line.
-- **Log at the right level.** Expected domain errors (404,
-  409) are `info` or `warn`; unexpected errors (500,
+- **Log at the right level.** Expected domain errors (404, 409) are `info` or `warn`; unexpected errors (500,
   unmapped throws) are `error`.
 - **The full stack trace goes to the log, never to the
   client.** Production 500 responses are opaque by

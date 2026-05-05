@@ -3,7 +3,7 @@
 **Reviewer:** security-reviewer
 **Input:** <spec path | plan path | PR URL | diff reference>
 **Related ADRs:** <NNNN, NNNN — or "none, flagged" if a
-  load-bearing decision is pending>
+load-bearing decision is pending>
 **Date:** YYYY-MM-DD
 **Verdict:** approve | change-required | block
 
@@ -58,7 +58,7 @@ in the lifecycle become findings.
 
 - **<asset>** — created at `<location>`, stored in `<primitive>`,
   logged `<never | redacted | full>`, destroyed at `<location
-  or trigger>`.
+or trigger>`.
 
 ## Findings
 

@@ -13,9 +13,10 @@ these contracts regardless of stack.
   plan or spec they cover, are filename-suffixed `-tests.md`,
   and archive with the plan via the cascade in
   `04-doc-lifecycle.md`.
+- **Open questions** — `<paths.open_questions>/` (transient, deleted after phase completion).
 - **ADRs** — `<paths.decisions>/` (flat, never archived).
 
-Paths resolve from `.ai/project.yaml` under `paths:`. Never
+Paths resolve from `.ai-local/project.yaml` under `paths:`. Never
 hardcode `docs/…` in skills, rules, or tools.
 
 ## Filenames
@@ -24,6 +25,7 @@ hardcode `docs/…` in skills, rules, or tools.
   when the doc was created; it does not change on archival.
 - Test plans: `YYYY-MM-DD-<slug>-tests.md`. The `<slug>` matches
   the spec or plan the test plan covers.
+- Open questions: `YYYY-MM-DD-<slug>.md`. The slug matches the related feature doc.
 - ADRs: `NNNN-<slug>.md`, monotonically numbered from `0001`.
 - Rule files: `NN-<topic>.md`, numbered for load order.
 
@@ -45,16 +47,16 @@ between `active/` and `archive/`. Filenames move; id stays.
 
 ```yaml
 ---
-id: <slug-or-NNNN>          # slug for brief/spec/plan/test-plan; NNNN for ADR
+id: <slug-or-NNNN> # slug for brief/spec/plan/test-plan; NNNN for ADR
 type: brief | spec | plan | test-plan | adr
 status: <see 04-doc-lifecycle.md>
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 owner: <persona name>
-related:                    # populated as links form; null otherwise
-  brief:     <path>
-  spec:      <path>
-  plan:      <path>
+related: # populated as links form; null otherwise
+  brief: <path>
+  spec: <path>
+  plan: <path>
   test_plan: <path>
   decisions: [NNNN, NNNN]
 ---
@@ -62,7 +64,11 @@ related:                    # populated as links form; null otherwise
 
 ## Type-specific additions
 
-- **Plans** carry `progress: { total, done, current_phase }`.
+- **Briefs** carried by `product-analyst`, scope is in/out.
+- **Specs** carried by `architect`, must include an Approach and
+  a detailed **Folder Structure & Component Changes** section
+  with a file tree.
+- **Plans** carried by `implementer`, carry `progress: { total, done, current_phase }`.
 - **Test plans** carry `related.spec` (required) and
   `related.plan` (null if the test plan was authored ahead of a
   plan).

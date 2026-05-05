@@ -1,15 +1,12 @@
 ---
 name: integrity-check
-description: Report on the local health of a consumer .ai/ installation. Runs four categories of checks — installation gate, content-presence, pointer-resolution, version-record — and prints a Markdown report. Read-only; makes no changes. Invoked explicitly by the user, never automatically.
+description: Report on the local health of a scaffold installation (Source or Consumer). Runs four categories of checks — installation gate, content-presence, pointer-resolution, version-record — and prints a Markdown report. Read-only; makes no changes. Invoked explicitly by the user, never automatically.
 ---
 
 ## Inputs
 
 None. The skill operates on what it finds on disk, rooted at
 the current working directory from which it is invoked.
-"Current working directory" is the concrete v1 meaning of
-"installation root" — not the git repository root, not
-`$HOME`.
 
 ## Personas
 
@@ -18,156 +15,108 @@ outcomes, prints a report, and stops.
 
 ## Rules loaded
 
-**None** — and this is a deliberate deviation from other
-scaffold skills. Most skills begin by reading
-`.ai/project.yaml` and loading everything under `rules.load`.
-This skill does not, because `.ai/project.yaml` is itself a
-content-bearing file that the skill must validate: it appears
-in the content-presence manifest (Step 2). If Step 1 tried to
-load `project.yaml`, the skill would be unable to run — and
-fail loudly — in exactly the case that matters most, when
-`project.yaml` is the broken thing.
-
-The skill does not interpret rules. It applies a fixed set of
+**None** — this skill does not interpret rules. It applies a fixed set of
 structural checks defined in this file.
 
 ## Steps
 
-1. **Installation gate.** Check whether `.ai/` exists as a
-   directory at the current working directory. If it does
-   not, record a single check:
+1. **Mode Detection.** Detect the scaffold mode and root:
 
-   ```
-   category: installation
-   target:   .
-   outcome:  FAIL
-   detail:   not a scaffold installation (no .ai/ at current working directory)
-   ```
+   - If `./.ai/SCAFFOLD_VERSION` exists:
+     Set `MODE=CONSUMER`, `ROOT=.ai/`, and `PROJECT_YAML=.ai-local/project.yaml`.
+   - Else if `./SCAFFOLD_VERSION` exists:
+     Set `MODE=SOURCE`, `ROOT=./`, and `PROJECT_YAML=project.yaml.example`.
+   - Otherwise, record a single check and stop:
+     ```
+     category: installation
+     target:   .
+     outcome:  FAIL
+     detail:   not a scaffold installation (no SCAFFOLD_VERSION found)
+     ```
 
-   Emit the report per Step 6 with only this entry and stop.
-   "Categories run" lists `installation — 1` only; the other
-   three categories are omitted (not rendered as `0`).
+2. **Build the content-presence manifest.** Add the following paths to the manifest (prefixed by `ROOT` where applicable):
 
-2. **Build the content-presence manifest.** By scaffold
-   convention (not by reading `project.yaml`), the following
-   paths are content-bearing and are added to the manifest:
+   - `<ROOT>AGENTS.md`
+   - `<ROOT>design-rationale.md`
+   - `<ROOT>design-system.md`
+   - `<ROOT>intro.html`
+   - `<PROJECT_YAML>`
+   - every `<ROOT>personas/*.md`
+   - every `<ROOT>rules/**/*.md`
+   - every `<ROOT>skills/*/SKILL.md`
+   - every `<ROOT>templates/*.md`
+   - every `<ROOT>terminology/*.md`
+   
+   If `MODE=SOURCE`, also add:
+   - every `.scripts/*.sh`
+   - every `.scripts/*.ps1`
 
-   - `.ai/AGENTS.md`
-   - `.ai/project.yaml`
-   - every `.ai/personas/*.md`
-   - every `.ai/rules/**/*.md`
-   - every `.ai/skills/*/SKILL.md`
-   - every `.ai/templates/*.md`
-
-   Resolve via glob. `.ai/overrides/` and `.ai/rules/local/`
+   Resolve via glob. `<ROOT>.ai-local/overrides/` and `<ROOT>.ai-local/rules/`
    are allowed to be empty and are **not** in the manifest.
-   `.ai/SCAFFOLD_VERSION` is handled separately by Step 5,
-   not here.
+   `<ROOT>SCAFFOLD_VERSION` is handled separately by Step 5.
 
-3. **Content-presence checks.** For every manifest entry
-   resolved in Step 2:
+3. **Content-presence checks.** For every manifest entry resolved in Step 2:
 
    - If the file does not exist on disk → `FAIL — missing`.
-   - If the file exists and its size is 0 bytes →
-     `FAIL — empty`. (This is the Issue 7 regression.)
+   - If the file exists and its size is 0 bytes → `FAIL — empty`.
    - Otherwise → `PASS`.
 
-   Additionally, for each expected-populated directory —
-   `.ai/personas/`, `.ai/rules/global/`, `.ai/skills/`,
-   `.ai/templates/` — if the glob for that directory returns
-   no entries, record one extra check:
-   `FAIL — expected-populated directory is empty` against the
-   directory path.
+   Additionally, for each expected-populated directory:
+   - `<ROOT>personas/`
+   - `<ROOT>rules/global/`
+   - `<ROOT>skills/`
+   - `<ROOT>templates/`
+   - `<ROOT>terminology/`
+   If the glob for that directory returns no entries, record:
+   `FAIL — expected-populated directory is empty` against the directory path.
 
-   v1 flags zero-byte files only. Below-threshold size
-   detection is deferred; see ADR 0001.
+4. **Pointer-resolution checks.**
 
-4. **Pointer-resolution checks.** Two sub-checks:
+   4a. **Symlinks.** Walk `ROOT` recursively.
+   For every symlink encountered, resolve its target. If the target does not exist on disk → `FAIL — broken symlink <link> -> <target>`. Otherwise → `PASS`.
 
-   4a. **Symlinks under `.ai/`.** Walk `.ai/` recursively.
-   For every symlink encountered, resolve its target. If the
-   target does not exist on disk → `FAIL — broken symlink
-   <link> -> <target>`. Otherwise → `PASS`.
+   4b. **Frontmatter `related.*` pointers.** (Only if `docs/` exists at the root).
+   For every `*.md` under `docs/briefs/`, `docs/specs/`, `docs/plans/`, and `docs/decisions/`, parse YAML frontmatter. For every non-null value under `related.*`:
+   - String path: `FAIL` if the path does not resolve; `PASS` otherwise.
+   - List value: for each id, `FAIL` if no file matching `docs/decisions/NNNN-*.md` exists; `PASS` per id otherwise.
 
-   4b. **Frontmatter `related.*` pointers across all docs.**
-   For every `*.md` under `docs/briefs/` (both `active/` and
-   `archive/`), `docs/specs/` (both), `docs/plans/` (both),
-   and `docs/decisions/`, parse YAML frontmatter. For every
-   non-null value under `related.*`:
+5. **Version-record check.** Read `<ROOT>SCAFFOLD_VERSION`.
 
-   - String value (e.g. `related.spec: docs/specs/active/...`):
-     treat as a path. `FAIL` if the path does not resolve to
-     a file on disk; `PASS` otherwise.
-   - List value (e.g. `related.decisions: [0001, 0002]`):
-     for each id, `FAIL` if no file matching
-     `docs/decisions/NNNN-*.md` exists; `PASS` per id
-     otherwise.
-   - Null values are declarations of absence and are not
-     checked.
+   - If missing or empty → `FAIL — no scaffold version recorded`.
+   - Otherwise → `PASS — <value>` (trimmed content).
 
-   Archive-directory docs are included by choice (ADR 0001).
-   Issue 16's archive-time pointer rewrite means archived
-   pointers should still resolve; if they don't, that is a
-   real finding, not a false positive.
+6. **Semantic Scope checks.**
 
-5. **Version-record check.** Read `.ai/SCAFFOLD_VERSION`.
+   - **Global rules.** For every `*.md` under `<ROOT>rules/global/` (excluding `README.md`):
+     - Scan content for forbidden stack/project terms: `react-native`, `nextjs`, `nodejs`, `react`, `vue`, `angular`, `flutter`, `electron`.
+     - `FAIL — semantic violation: global rule <file> contains restricted term <term>` if any are found.
+     - Otherwise → `PASS`.
 
-   - If the file is missing or its content is empty (zero
-     bytes, or whitespace-only) → `FAIL — no scaffold version
-     recorded`.
-   - If present and non-empty → `PASS — <value>`, where
-     `<value>` is the file's content trimmed of surrounding
-     whitespace.
+   - **Stack rules.** For every `*.md` under `<ROOT>rules/stacks/` (excluding `README.md`):
+     - Scan content for forbidden project-specific terms: `pmview`.
+     - `FAIL — semantic violation: stack rule <file> contains restricted term <term>` if any are found.
+     - Otherwise → `PASS`.
 
-   v1 does not validate format beyond non-emptiness; see ADR
-   0002. A value of `hello` passes. Format enforcement is a
-   future version-tracking work item, not this skill's job.
-
-6. **Emit the report.** Print to the agent's conversation
-   output in this Markdown structure:
+7. **Emit the report.** Print to the agent's conversation output in this Markdown structure:
 
    ```markdown
-   # Integrity check — YYYY-MM-DD
+   # Integrity check (<MODE>) — YYYY-MM-DD
+
+   ## Passes
+   - `<category>` — `<group_path>` — `<count> files`
+   ...
+
+   ## Categories run
+   - <category> — <n>
+   ...
 
    **Summary:** <passed>/<total> checks passed. <failed> failures.
 
    ## Failures
-
-   _None._
-   <or>
    - `<category>` — `<target>` — <detail>
-   - ...
-
-   ## Passes
-
-   _None._
-   <or>
-   - `<category>` — `<target>` [— <detail>]
-   - ...
-
-   ## Categories run
-
-   - <category> — <n>
-   - ...
+   ...
    ```
-
-   - `_None._` is the literal rendering when a section has
-     no entries. The section is never omitted.
-   - "Categories run" lists only categories that had at
-     least one check. Zero-count categories are omitted, not
-     printed as `0`. This keeps the installation-gate
-     single-check report clean.
-   - The date in the header is today's date (local time) at
-     invocation.
-
-   Stop. The skill writes nothing to disk. Running it twice
-   in a row on an unchanged tree produces identical reports.
 
 ## Outputs
 
-- A Markdown report printed to the agent's conversation
-  output. No files are created, modified, or deleted. No
-  frontmatter is touched. No dashboard is refreshed (this
-  skill is read-only by design — the dashboard-refresh
-  invariant in `rules/global/04-doc-lifecycle.md` applies
-  to skills that mutate docs, not to this one).
+- A Markdown report printed to the agent's conversation output.

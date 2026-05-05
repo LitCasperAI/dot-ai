@@ -28,14 +28,14 @@ judgment call.
 
 ## Rules loaded
 
-From `.ai/project.yaml`: `paths.*`. Invariants are defined in
+From `.ai-local/project.yaml`: `paths.*`. Invariants are defined in
 `rules/global/04-doc-lifecycle.md` (read for reference, not
 interpreted). If `project.yaml` is missing or malformed, stop
 and ask.
 
 ## Steps
 
-1. **Orient.** Read `.ai/project.yaml`. Resolve `paths.briefs`,
+1. **Orient.** Read `.ai-local/project.yaml`. Resolve `paths.briefs`,
    `paths.specs`, `paths.plans`, `paths.index`,
    `paths.decisions`.
 
@@ -45,6 +45,7 @@ and ask.
 
 3. **Build the archive list.** Assemble the list of files the
    skill will move:
+
    - The plan, always.
    - The spec, iff `related.spec` is non-null.
    - The brief, iff `related.brief` is non-null.
@@ -59,8 +60,9 @@ and ask.
    without moving any file. The goal is to catch every
    realistic cause of mid-sequence failure up front so Step 5
    is as close to atomic as the filesystem allows:
+
    - Every file in the archive list exists at its declared
-     `active/` path. A *declared* path (non-null) that is
+     `active/` path. A _declared_ path (non-null) that is
      missing from disk is a real inconsistency — fail loudly.
    - Every source file in the list is readable.
    - Every target `archive/` directory exists and is
@@ -79,10 +81,11 @@ and ask.
    already moved and which haven't, so the tree can be
    reconciled by hand. Do not attempt further moves. Move in
    this order (skipping any not in the list):
-   1. Plan:      `<paths.plans>/active/<f>`  → `<paths.plans>/archive/<f>`.
-   2. Test plan: `<paths.plans>/active/<f>`  → `<paths.plans>/archive/<f>`.
-   3. Spec:      `<paths.specs>/active/<f>`  → `<paths.specs>/archive/<f>`.
-   4. Brief:     `<paths.briefs>/active/<f>` → `<paths.briefs>/archive/<f>`.
+
+   1. Plan: `<paths.plans>/active/<f>` → `<paths.plans>/archive/<f>`.
+   2. Test plan: `<paths.plans>/active/<f>` → `<paths.plans>/archive/<f>`.
+   3. Spec: `<paths.specs>/active/<f>` → `<paths.specs>/archive/<f>`.
+   4. Brief: `<paths.briefs>/active/<f>` → `<paths.briefs>/archive/<f>`.
 
 6. **Update cross-references.** In the moved plan's
    frontmatter, rewrite every non-null `related.*` path that
@@ -93,14 +96,19 @@ and ask.
    pointers into `active/`, rewrite those too by the same
    rule.
 
-7. **Refresh the dashboard.** Invoke `refresh-docs` —
+7. **Merge Open Questions.** Extract the exact date prefix from the plan's filename.
+   Check if `docs/open-questions/<exact-date-prefix>-<id>.md` exists for the
+   completed plan. If so, merge its resolved questions into the archived plan
+   (or spec/brief as appropriate), and then delete the transient questions file.
+
+8. **Refresh the dashboard.** Invoke `refresh-docs` —
    by reading `.ai/skills/refresh-docs/SKILL.md` and
    executing its procedure inline. Skill-invoking-skill has no
    standard cross-tool mechanism, so "invoke" means running
    that procedure here. If the procedure cannot be executed,
    surface the failure — do not silently continue.
 
-8. **Leave ADRs alone.** Do not touch `<paths.decisions>/`.
+9. **Leave ADRs alone.** Do not touch `<paths.decisions>/`.
 
 ## Outputs
 

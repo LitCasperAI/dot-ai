@@ -27,22 +27,23 @@ description: Run a focused security review on a spec, plan, or diff that touches
 
 ## Rules loaded
 
-From `.ai/project.yaml`: all entries under `rules.load`,
-particularly `global/01-principles.md`,
-`global/08-secrets-and-data.md`, and any stack-specific security
-or secrets rule file. The review cites the sanctioned primitives
-those rules declare — it does not invent its own.
+From `.ai-local/project.yaml`: all entries under `rules.core`,
+plus relevant entries from `rules.contextual` (specifically 
+`08-secrets-and-data.md` and any stack-specific security rules).
+The review cites the sanctioned primitives those rules declare — 
+it does not invent its own.
 
 ## Steps
 
-1. **Orient.** Read `.ai/project.yaml`. Resolve `paths.*`. Load
-   the `security-reviewer` persona and every rule file listed
-   under `rules.load`. Load the input artefact (spec, plan, or
+1. **Orient.** Read `.ai-local/project.yaml`. Resolve `paths.*`. Load
+   the `security-reviewer` persona, all `rules.core`, and required
+   `rules.contextual` files. Load the input artefact (spec, plan, or
    diff).
 
 2. **Establish the threat model (security-reviewer).** If a
    threat model was supplied, load it. Otherwise author a short
    one for this change, covering:
+
    - **Assets** — what is worth protecting in scope of this
      change (credentials, user data, payment tokens, session
      state).
@@ -52,8 +53,8 @@ those rules declare — it does not invent its own.
      input, intercept network, read device storage).
    - **Out of scope** — what this review does not cover, stated
      explicitly so silence is not taken as approval.
-   A review without a stated threat model is a style review;
-   per the persona, do not skip this step.
+     A review without a stated threat model is a style review;
+     per the persona, do not skip this step.
 
 3. **Map the change to the threat model (security-reviewer).**
    Walk the artefact. For each asset named in step 2, identify
@@ -62,6 +63,7 @@ those rules declare — it does not invent its own.
    lifecycle is a finding.
 
 4. **Check sanctioned primitives (security-reviewer).** Verify:
+
    - Crypto, auth, session, and secure-storage usage goes
      through the primitives declared by the loaded rules.
    - Input at trust boundaries (user input, URLs, deep-link
@@ -71,17 +73,18 @@ those rules declare — it does not invent its own.
      headers, or unredacted PII, per
      `global/08-secrets-and-data.md`.
    - Error paths do not silently drop privilege checks.
-   Each finding names the rule or primitive at stake and
-   proposes the smallest correct change.
+     Each finding names the rule or primitive at stake and
+     proposes the smallest correct change.
 
 5. **Classify findings (security-reviewer).** Label each
    finding:
+
    - **Block** — cannot ship as designed.
    - **Change-required** — must be addressed before merge but
      a design change is not needed.
    - **Advisory** — observation for the author; does not block.
-   Do not downgrade a block to an advisory to unblock a
-   release.
+     Do not downgrade a block to an advisory to unblock a
+     release.
 
 6. **Author an ADR when the decision is load-bearing
    (architect, if required).** If the review produces a
@@ -94,6 +97,7 @@ those rules declare — it does not invent its own.
 
 7. **Compose the review.** Produce a Markdown document
    structured as:
+
    - **Threat model** — from step 2.
    - **Asset lifecycles** — from step 3.
    - **Findings** — grouped by classification from step 5.

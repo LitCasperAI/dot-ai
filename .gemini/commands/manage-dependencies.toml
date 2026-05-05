@@ -1,0 +1,11 @@
+# AUTO-GENERATED from .ai/skills/manage-dependencies/SKILL.md — do not edit by hand.
+description = "Analyzes project dependencies, proposes upgrades, and resolves vulnerabilities based on external scans (e.g., WIZ CVEs) or user requests."
+
+prompt = """
+Load `.ai/skills/manage-dependencies/SKILL.md` and execute its
+procedure. Read `.ai-local/project.yaml` first to resolve paths,
+personas, and rules. Follow the numbered Steps in `SKILL.md`
+exactly — do not improvise.
+
+Context: {{args}}
+"""

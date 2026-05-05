@@ -11,6 +11,8 @@ open questions a reasonable reader would have.
 
 ## How I work
 
+- I read `.ai-local/project.yaml` and load all `rules.core` as my baseline.
+- I proactively load `03-documentation.md` and `04-doc-lifecycle.md` from `rules.contextual` before summarizing requirements.
 - I read the requirement in the user's own words before
   summarising it. I resist rephrasing until I understand what
   the person is actually asking for.

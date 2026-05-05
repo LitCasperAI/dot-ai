@@ -29,15 +29,16 @@ description: Review a pull request or local change against the loaded rules and 
 
 ## Rules loaded
 
-From `.ai/project.yaml`: all entries under `rules.load`. The
-review cites specific rule files and sections — it does not
-summarise "the rules" generically. If `project.yaml` is missing
+From `.ai-local/project.yaml`: all entries under `rules.core`. The
+reviewer must also proactively load relevant entries from
+`rules.contextual` (specifically `06-testing.md` and any stack-specific
+rules) before forming an opinion. If `project.yaml` is missing
 or malformed, stop and ask.
 
 ## Steps
 
-1. **Orient.** Read `.ai/project.yaml`. Resolve `paths.*`. Load
-   every rule file listed under `rules.load`. Load the
+1. **Orient.** Read `.ai-local/project.yaml`. Resolve `paths.*`. Load
+   all `rules.core` and required `rules.contextual` files. Load the
    `reviewer` persona.
 
 2. **Acquire the change (reviewer).** Fetch the PR description
@@ -48,6 +49,7 @@ or malformed, stop and ask.
 
 3. **Scan for escalations (reviewer).** Inspect the diff for
    triggers:
+
    - **Security**: changes under auth paths, anything importing
      crypto or secure-storage libraries, changes to token
      handling, session lifetime, or redaction helpers, new
@@ -55,20 +57,22 @@ or malformed, stop and ask.
    - **Test**: any behavioural change (non-comment, non-doc) in
      `src/` without a corresponding test change in the same
      change set.
-   Record which escalations are active; they inform steps 5 and
+     Record which escalations are active; they inform steps 5 and
+
    6.
 
 4. **Review the diff top to bottom (reviewer).** Read the diff
    in full before writing any comment. For each comment:
+
    - Point at a specific file and line range.
    - Name the rule file or principle at stake
      (`global/06-testing.md`, `stacks/<stack>/01-constraints.md`,
      etc.).
    - Propose the smallest correct fix.
-   Separate comments into three buckets: **blocking** (rule
-   violation), **change-request** (must address but does not
-   block the merge gate), **suggestion** (nit, preference, or
-   style).
+     Separate comments into three buckets: **blocking** (rule
+     violation), **change-request** (must address but does not
+     block the merge gate), **suggestion** (nit, preference, or
+     style).
 
 5. **Security pass (security-reviewer, if activated).** Load
    `.ai/personas/security-reviewer.md`. State the threat model
@@ -87,6 +91,7 @@ or malformed, stop and ask.
 
 7. **Plan honesty check (reviewer).** If the change links to a
    plan in `<paths.plans>/active/`, verify:
+
    - The plan's checkboxes match the diff (no completed work
      left unchecked, no checked work missing from the diff).
    - `progress.total`, `progress.done`, and `updated` reflect
@@ -94,10 +99,11 @@ or malformed, stop and ask.
    - The 🔄 marker is on the correct task, or absent if the plan
      is complete.
    - A Notes entry exists if the plan was paused.
-   Record discrepancies as blocking comments.
+     Record discrepancies as blocking comments.
 
 8. **Compose the review.** Produce a single Markdown document
    structured as:
+
    - **Summary** — one paragraph, the reviewer's overall
      position (approve / request changes / block) with the
      reason.

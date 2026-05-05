@@ -182,51 +182,37 @@
      ============================================================ -->
 <section class="slide" id="workflow">
 <div class="slide-inner">
-  <h2>The Workflow: 11 Skills, One Pipeline</h2>
-  <p>Skills form a pipeline from requirement → release. Each skill produces artifacts the next one consumes.</p>
+  <h2>The Workflow: The Review Loop</h2>
+  <p>The scaffold is built around an iterative lifecycle bound by a <strong>Review Loop</strong> to ensure alignment at every stage.</p>
   <div class="diagram"><pre>
-  <span class="highlight">User requirement</span> (free text, ticket, Slack message)
-          │
-          ▼
-    ┌─────────────┐   product-analyst drafts brief,
-    │ <span class="em-green">create-spec</span> │   architect drafts spec + ADRs
-    └──────┬──────┘
-           │  brief → <span class="em-orange">⏸ USER APPROVAL</span> → spec
-           ▼
-    ┌─────────────┐
-    │ <span class="em-green">create-plan</span> │   architect phases work into plan
-    └──────┬──────┘
-           │                    ┌───────────────┐
-           ├───────────────────→│ <span class="em-purple">design-tests</span>  │  (optional, parallel)
-           │                    └───────┬───────┘
-           ▼                            │
-    ┌─────────────┐                     │
-    │ <span class="em-green">implement</span>   │◄────────────────────┘  uses test plan
-    └──────┬──────┘
-           │  ⏸ pause / resume
-           ▼
-    ┌──────────────┐
-    │ <span class="em-green">resume-plan</span>  │   picks up 🔄 marker, loads context
-    └──────┬───────┘
-           │  hands back to implement
-           ▼
-    ┌────────────────┐
-    │ <span class="em-orange">review-change</span>  │   reviewer + conditional security &amp; test passes
-    └──────┬─────────┘
-           │
-           ▼
-    ┌──────────────┐
-    │ <span class="em-green">archive-plan</span> │   moves done artifacts to archive/
-    └──────┬───────┘
-           │  (repeat for N features)
-           ▼
-    ┌─────────────────┐
-    │ <span class="em-purple">prepare-release</span> │   version bump, release notes, tag, CI
-    └─────────────────┘
+           ( <span class="highlight">IDEA</span> )
+              │
+              ▼  <span class="em-green">/create-spec</span>       ── product-analyst drafts brief
+          [ <span class="highlight">BRIEF</span> ]  ◄───────────────┐
+              │                      │
+              ▼ (⏸ user approval)    │
+          [ <span class="highlight">SPEC</span> ]   ◄───────────────┤ <span class="em-orange">/review</span>
+              │                      │ (The Review Loop)
+              ▼  <span class="em-green">/create-plan</span>        │ ── architect drafts spec + ADRs
+          [ <span class="highlight">PLAN</span> ]   ◄───────────────┘
+              │
+              ├─────────────────────→ [ <span class="highlight">TEST PLAN</span> ] ── <span class="em-purple">/design-tests</span>
+              ▼  <span class="em-green">/implement</span>
+    [ <span class="em-green">WORKING CODE</span> ] ◄───────────┐  ── <span class="em-green">/resume-plan</span> reloads context
+              │                      │
+              │                      │ <span class="em-orange">/review</span>
+              ▼  <span class="em-green">/archive-plan</span>       │ (The Review Loop)
+          ( <span class="em-purple">ARCHIVE</span> )   ◄────────────┘
+              │
+              ▼  <span class="em-purple">/prepare-release</span>    ── release-engineer bumps version
+         { <span class="highlight">RELEASE</span> }
 
   <span style="color:#484f58;">Cross-cutting:</span>
     <span class="em-green">refresh-docs</span>      — invoked inline by most skills, regenerates dashboard
     <span class="em-orange">security-review</span>   — standalone deep security review (any time)
+    <span class="em-purple">audit-docs</span>        — sweep tree for staleness, drift, or orphans
+    <span class="em-green">investigate</span>       — architectural research → spec/ADR
+    <span class="em-orange">manage-deps</span>       — analyze and upgrade dependencies
     <span class="em-purple">integrity-check</span>   — diagnostic: "is my .ai/ install healthy?"
   </pre></div>
 </div>
@@ -234,7 +220,7 @@
 
 
 <!-- ============================================================
-     SLIDE 4 — Skills detail: Spec → Plan → Tests
+     SLIDE 4 — Skills detail: Idea → Plan
      ============================================================ -->
 <section class="slide" id="skills-spec">
 <div class="slide-inner">
@@ -248,14 +234,22 @@
       <span class="tag tag-gate">⏸ approval gate</span>
       <span class="tag tag-output">brief + spec + ADRs</span>
     </div>
-    <p>Turns a user requirement into a <strong>brief</strong> (product language) and a <strong>technical spec</strong> with ADRs. The brief must be explicitly approved before the spec is drafted — this is the only human gate in the pipeline.</p>
+    <p>The primary entry point for new features. Handles the transition from <strong>Idea to Brief</strong> (human gate) and <strong>Brief to Spec</strong>. Guarantees that product intent is captured before technical design begins.</p>
     <ol class="steps">
-      <li>Orient — load project.yaml, rules, personas</li>
-      <li>Draft brief as <em>product-analyst</em> → <code>docs/briefs/active/YYYY-MM-DD-slug.md</code></li>
-      <li><strong>⏸ Pause for user approval</strong> — will not proceed until brief is approved</li>
-      <li>Draft spec + ADRs as <em>architect</em> → <code>docs/specs/active/</code>, <code>docs/decisions/</code></li>
+      <li>Draft brief as <em>product-analyst</em> → <code>docs/briefs/active/</code></li>
+      <li><strong>⏸ Pause for user approval</strong></li>
+      <li>Draft spec + ADRs as <em>architect</em> → <code>docs/specs/active/</code></li>
       <li>Refresh docs dashboard</li>
     </ol>
+  </div>
+
+  <div class="skill-section">
+    <h3>/investigate</h3>
+    <div class="skill-meta">
+      <span class="tag tag-persona">architect</span>
+      <span class="tag tag-output">spec / ADR</span>
+    </div>
+    <p>Conducts deep technical research or architectural evaluation of a new library, pattern, or refactor. Produces a <strong>Spec</strong> or <strong>ADR</strong> with findings and recommendations, skipping the Brief phase.</p>
   </div>
 
   <div class="skill-section">
@@ -265,14 +259,7 @@
       <span class="tag tag-persona">implementer</span>
       <span class="tag tag-output">phased plan</span>
     </div>
-    <p>Takes an <strong>approved spec</strong> and breaks it into phased work. Each phase ends in a testable, deployable state. Uses <code>templates/plan.md</code> with frontmatter, checkboxes, and a rule-compliance checklist.</p>
-    <ol class="steps">
-      <li>Validate spec has <code>status: approved</code></li>
-      <li>Phase the work — each phase ends in testable state</li>
-      <li>Architecture pre-flight — validate file paths, naming, structure against rules</li>
-      <li>Populate plan template with phases, related links, progress counters</li>
-      <li>Hand off to implementer (plan left at <code>status: draft</code>)</li>
-    </ol>
+    <p>Takes an <strong>approved spec</strong> and breaks it into phased work. Each phase ends in a testable, deployable state. Uses <code>templates/plan.md</code> with progress counters and rule-compliance checklists.</p>
   </div>
 
   <div class="skill-section">
@@ -281,14 +268,14 @@
       <span class="tag tag-persona">tester</span>
       <span class="tag tag-output">test plan</span>
     </div>
-    <p>Produces a <strong>test plan</strong> (not test code) from the spec: which behaviours, at which level (unit/component/integration/e2e), what failure modes, what fixtures. Can run in parallel with plan creation.</p>
+    <p>Produces a <strong>test plan</strong> (behaviours, unit/component/e2e coverage, failure modes) from the spec. Runs in parallel with plan creation to ensure implementation is test-driven.</p>
   </div>
 </div>
 </section>
 
 
 <!-- ============================================================
-     SLIDE 5 — Skills detail: Implement → Review → Archive
+     SLIDE 5 — Skills detail: Build, Review, Ship
      ============================================================ -->
 <section class="slide" id="skills-impl">
 <div class="slide-inner">
@@ -300,14 +287,7 @@
       <span class="tag tag-persona">implementer</span>
       <span class="tag tag-output">code + updated plan</span>
     </div>
-    <p>Executes the plan <strong>phase by phase, task by task</strong>. Ticks checkboxes, moves the 🔄 cursor, runs tests after every task. Supports pause/resume.</p>
-    <ol class="steps">
-      <li>Promote plan to <code>status: in-progress</code>, locate 🔄 marker</li>
-      <li>Implement one task — minimum code, match conventions, don't expand scope</li>
-      <li>Verify — tests, linters, type checks must pass</li>
-      <li>Update plan — tick box, move 🔄, increment progress counter</li>
-      <li>Repeat until phase boundary or user pause</li>
-    </ol>
+    <p>Executes the plan <strong>phase by phase, task by task</strong>. Ticks checkboxes, moves the 🔄 cursor, and runs tests after every task. Supports pause/resume discipline.</p>
   </div>
 
   <div class="skill-section">
@@ -316,18 +296,17 @@
       <span class="tag tag-persona">implementer</span>
       <span class="tag tag-output">context → implement</span>
     </div>
-    <p>Picks up a paused plan: finds the 🔄 marker, reads the latest Notes entry, loads brief &amp; spec for context, then hands off to <code>/implement</code>.</p>
+    <p>Picks up a paused plan: finds the 🔄 marker, reads the latest Notes entry, reloads the spec and brief for context, then hands off to <code>/implement</code>.</p>
   </div>
 
   <div class="skill-section">
-    <h3>/review-change</h3>
+    <h3>/review</h3>
     <div class="skill-meta">
       <span class="tag tag-persona">reviewer</span>
-      <span class="tag tag-persona">security-reviewer <small>(conditional)</small></span>
-      <span class="tag tag-persona">tester <small>(conditional)</small></span>
-      <span class="tag tag-output">structured review</span>
+      <span class="tag tag-persona">security-reviewer</span>
+      <span class="tag tag-output">consolidated review</span>
     </div>
-    <p>Reviews a PR or local diff against <strong>loaded rules and linked artifacts</strong>. Escalates to security-reviewer if the diff touches auth/crypto/PII, to tester if behaviour changes lack tests. Outputs: blocking, change-request, suggestion.</p>
+    <p>Unified entry point for all review types. Analyzes context and delegates to <code>review-doc</code>, <code>review-change</code>, and runs a parallel <code>security-review</code>. Consolidates all findings into a single structured response.</p>
   </div>
 
   <div class="skill-section">
@@ -336,7 +315,7 @@
       <span class="tag tag-mechanic">mechanical</span>
       <span class="tag tag-output">files → archive/</span>
     </div>
-    <p>When a plan reaches <code>status: done</code>, atomically moves it and related artifacts (spec, brief, test-plan) from <code>active/</code> to <code>archive/</code>. Updates cross-references and refreshes the dashboard.</p>
+    <p>When a plan reaches <code>status: done</code>, atomically moves the plan and all related artifacts (spec, brief, test-plan) from <code>active/</code> to <code>archive/</code>.</p>
   </div>
 
   <div class="skill-section">
@@ -346,34 +325,49 @@
       <span class="tag tag-gate">⏸ human approval</span>
       <span class="tag tag-output">version + notes + tag</span>
     </div>
-    <p>Drives the repo from green main to release-ready: version bump, release notes, annotated tag, CI trigger. <strong>Stops before external submission</strong> — publishing is always a human act.</p>
+    <p>Drives the repo from green main to release-ready: version bump, release notes, and annotated tag. Stops before CI trigger or store submission.</p>
   </div>
 </div>
 </section>
 
 
 <!-- ============================================================
-     SLIDE 6 — Cross-cutting skills
+     SLIDE 6 — Quality & Maintenance
      ============================================================ -->
 <section class="slide" id="skills-cross">
 <div class="slide-inner">
-  <h2>Cross-Cutting Skills</h2>
+  <h2>Maintenance, Audit &amp; Quality</h2>
 
   <div class="card-grid">
     <div class="card">
       <h3>🔄 /refresh-docs</h3>
       <div class="skill-meta"><span class="tag tag-mechanic">mechanical</span></div>
-      <p>Regenerates the documentation dashboard at <code>docs/README.md</code>. Walks <code>active/</code> and <code>archive/</code> directories, reads frontmatter, writes tables. Invoked inline by most other skills after any doc mutation.</p>
+      <p>Regenerates the documentation dashboard at <code>docs/README.md</code>. Writes status tables for all active and archived artifacts. Invoked inline by most skills.</p>
     </div>
     <div class="card">
       <h3>🔒 /security-review</h3>
-      <div class="skill-meta"><span class="tag tag-persona">security-reviewer</span><span class="tag tag-persona">architect</span></div>
-      <p>Deep standalone security review. Builds/validates a threat model, maps asset lifecycles, checks sanctioned primitives. Produces findings (Block / Change-required / Advisory) and ADRs for load-bearing decisions. Deeper than <code>/review-change</code>'s inline security pass.</p>
+      <div class="skill-meta"><span class="tag tag-persona">security-reviewer</span></div>
+      <p>Deep standalone security review. Authors a threat model, maps asset lifecycles, and classifies findings (Block / Change-required / Advisory).</p>
     </div>
     <div class="card">
       <h3>🩺 /integrity-check</h3>
       <div class="skill-meta"><span class="tag tag-mechanic">mechanical</span></div>
-      <p>Diagnostic tool: "is my <code>.ai/</code> install healthy?" Checks file presence, symlink resolution, frontmatter pointer validity, and scaffold version. <strong>Read-only</strong> — makes no changes. User-invoked, never automatic.</p>
+      <p>Diagnostic tool: "is my <code>.ai/</code> install healthy?" Checks file presence, symlink resolution, and scaffold version. Read-only.</p>
+    </div>
+    <div class="card">
+      <h3>📋 /audit-docs</h3>
+      <div class="skill-meta"><span class="tag tag-persona">auditor</span></div>
+      <p>Sweeps the docs tree for staleness, missing pieces, or contradictions. Produces a Markdown report highlighting orphaned files or broken links.</p>
+    </div>
+    <div class="card">
+      <h3>🏗️ /audit-structure</h3>
+      <div class="skill-meta"><span class="tag tag-persona">auditor</span><span class="tag tag-persona">architect</span></div>
+      <p>Validates code organization, folder layout, and module boundaries against stack rules. Identifies drift from established patterns.</p>
+    </div>
+    <div class="card">
+      <h3>📦 /manage-deps</h3>
+      <div class="skill-meta"><span class="tag tag-persona">dependency-manager</span></div>
+      <p>Analyzes dependencies, resolves vulnerabilities (CVEs), and proposes safe upgrades. Requires approval before installation.</p>
     </div>
   </div>
 </div>
@@ -469,7 +463,7 @@ repo-C/  → rules v1.3, 9 skills  ← custom fork
     </div>
     <div class="card">
       <h3><span class="highlight">✓</span> Fork &amp; Adapt</h3>
-      <p>Fork the submodule for your company. Override per-project in <code>.ai-local/</code>. The scaffolding is opinionated but never locked-in.</p>
+      <p>Fork the submodule for your company. Override per-project in <code>.ai/</code>. The scaffolding is opinionated but never locked-in.</p>
     </div>
   </div>
 </div>
@@ -486,19 +480,17 @@ repo-C/  → rules v1.3, 9 skills  ← custom fork
 your-repo/
 ├── <span class="highlight">.ai/</span>                    ← git submodule (shared, forkable)
 │   ├── AGENTS.md            ← master entry point for all AI agents
+│   ├── project.yaml         ← per-project manifest (local copy)
 │   ├── project.yaml.example ← config template
-│   ├── <span class="em-green">skills/</span>              ← 11 slash commands (source of truth)
+│   ├── <span class="em-green">skills/</span>              ← 17 slash commands (source of truth)
 │   ├── <span class="em-orange">rules/</span>
-│   │   ├── global/          ← universal rules (9 files)
-│   │   └── stacks/          ← per-stack rules (nodejs, dotnet, rust, …)
+│   │   ├── global/          ← universal rules (12 files)
+│   │   ├── stacks/          ← per-stack rules (nodejs, nextjs, …)
+│   │   └── project/         ← (deprecated, use .ai-local/rules/)
 │   ├── <span class="em-purple">personas/</span>            ← role definitions (architect, implementer, …)
+│   ├── <span class="em-orange">overrides/</span>           ← (deprecated, use .ai-local/overrides/)
 │   ├── templates/           ← doc templates (plan, spec, brief, …)
 │   └── .scripts/            ← install &amp; update scripts
-│
-├── <span class="highlight">.ai-local/</span>              ← project-specific (not in submodule)
-│   ├── project.yaml         ← your project config
-│   ├── rules/               ← project-specific rule overrides
-│   └── overrides/           ← persona overrides
 │
 ├── CLAUDE.md ──────────────→ symlink to .ai/AGENTS.md
 ├── GEMINI.md ──────────────→ symlink to .ai/AGENTS.md
@@ -506,7 +498,7 @@ your-repo/
 ├── .claude/skills/*/SKILL.md ────→ per-file symlinks to .ai/skills/
 └── .gemini/commands/*.toml ──────→ per-file symlinks to .ai/.gemini/commands/
   </pre></div>
-  <p style="margin-top:1rem; color:#8b949e; font-size:0.92rem;">The <span class="highlight">submodule</span> holds everything reusable. <span class="highlight">.ai-local/</span> holds everything project-specific. Symlinks bridge them to each agent tool's expected paths.</p>
+  <p style="margin-top:1rem; color:#8b949e; font-size:0.92rem;">The <span class="highlight">submodule</span> holds everything reusable. Project-specific config (<span class="highlight">project.yaml</span> and <span class="highlight">.ai-local/rules/</span>) lives inside the consumer repo. Symlinks bridge them to each agent tool's expected paths.</p>
 </div>
 </section>
 
@@ -524,7 +516,7 @@ your-repo/
     </div>
     <div class="card">
       <h3>⚙️ project.yaml</h3>
-      <p><strong>Why:</strong> Per-project manifest declaring name, stack, which rules to load, which personas to enable, and doc paths. Lives in <code>.ai-local/</code> so each repo customises without touching the submodule.</p>
+      <p><strong>Why:</strong> Per-project manifest declaring name, stack, which rules to load, which personas to enable, and doc paths. Created from the example template on install.</p>
     </div>
     <div class="card">
       <h3>🛠️ Skills</h3>
@@ -532,7 +524,7 @@ your-repo/
     </div>
     <div class="card">
       <h3>📏 Rules</h3>
-      <p><strong>Why:</strong> Coding standards the agent must follow. <strong>Global</strong> rules are universal (testing, secrets, version control). <strong>Stack</strong> rules teach the language/framework. <strong>Local</strong> rules override per-project.</p>
+      <p><strong>Why:</strong> Coding standards the agent must follow. <strong>Global</strong> rules (12) are universal. <strong>Stack</strong> rules teach the language. <strong>Project</strong> rules override specifically for this repo.</p>
     </div>
     <div class="card">
       <h3>🎭 Personas</h3>
@@ -547,8 +539,8 @@ your-repo/
       <p><strong>Why:</strong> Git stores them as mode 120000 — they survive clone. Per-file symlinks (not directory) because Windows git checkout creates file symlinks only. Zero maintenance after install.</p>
     </div>
     <div class="card">
-      <h3>📂 .ai-local/</h3>
-      <p><strong>Why:</strong> Project-specific config that can't live inside a shared submodule. Rule overrides, persona tweaks, and your project.yaml live here. Committed to your repo, not the submodule.</p>
+      <h3>📚 Terminology</h3>
+      <p><strong>Why:</strong> Shared vocabulary and domain definitions. Ensures agents use the same business terms and concepts across all artifacts, reducing ambiguity between product and engineering.</p>
     </div>
   </div>
 </div>
@@ -561,11 +553,12 @@ your-repo/
 <section class="slide" id="rules">
 <div class="slide-inner">
   <h2>Rules: Layered &amp; Stack-Specific</h2>
-  <p>Rules load in precedence order. A local rule with the same filename replaces a global one.</p>
+  <p>Rules load in precedence order (core -> contextual -> target -> local). A local rule with the same filename replaces a global one.</p>
   <div class="two-col">
     <div>
-      <h3 style="color:#7ee787;">Global Rules (9 files)</h3>
+      <h3 style="color:#7ee787;">Global Rules (12 files)</h3>
       <ul>
+        <li>00 — Intent Routing</li>
         <li>01 — Principles</li>
         <li>02 — Agent Conduct</li>
         <li>03 — Documentation</li>
@@ -573,8 +566,10 @@ your-repo/
         <li>05 — Version Control</li>
         <li>06 — Testing</li>
         <li>07 — Dependencies</li>
-        <li>08 — Secrets &amp; Data</li>
-        <li>09 — Observability &amp; Errors</li>
+        <li>08 — Secrets & Data</li>
+        <li>09 — Observability & Errors</li>
+        <li>10 — Design System</li>
+        <li>11 — Validation Discipline</li>
       </ul>
     </div>
     <div>
@@ -590,17 +585,19 @@ your-repo/
         <li>08 — Module / Library / Crate Conventions</li>
       </ul>
       <p style="margin-top:0.8rem; font-size:0.9rem;">
-        Available stacks: <code>nodejs</code>, <code>dotnet</code>, <code>rust</code>, <code>react-native</code>, <code>nextjs</code>
+        Available stacks: <code>dotnet</code>, <code>nextjs</code>, <code>nodejs</code>, <code>react-native</code>, <code>rust</code>
       </p>
     </div>
   </div>
   <div class="diagram" style="margin-top:1.5rem;"><pre>
-  project.yaml:
+  .ai-local/project.yaml:
     rules:
-      load:
-        - .ai/rules/global/*           ← always
-        - .ai/rules/stacks/dotnet/*    ← your stack
-        - .ai-local/rules/*            ← your overrides
+      core:
+        - .ai/rules/global/*           ← always loaded
+        - .ai/rules/stacks/nextjs/*    ← your stack
+      contextual:
+        - .ai/rules/global/*.md        ← task-aligned
+        - .ai-local/rules/*.md         ← task-aligned
   </pre></div>
 </div>
 </section>
@@ -617,8 +614,7 @@ your-repo/
       <h3 style="color:#7ee787;">Install (once)</h3>
       <ol>
         <li>Add the submodule:
-          <pre style="margin:0.5rem 0;"><code>git submodule add -b main \
-  --name dot-ai &lt;url&gt; .ai</code></pre>
+          <pre style="margin:0.5rem 0;"><code>git submodule add &lt;url&gt; .ai</code></pre>
         </li>
         <li>Run the install script:
           <pre style="margin:0.5rem 0;"><code># PowerShell (Windows)
@@ -627,8 +623,8 @@ your-repo/
 # Shell (Linux / macOS)
 sh .ai/.scripts/install-symlinks.sh</code></pre>
         </li>
-        <li>Edit <code>.ai-local/project.yaml</code> for your project</li>
-        <li>Commit everything</li>
+        <li><strong>Interactive Setup:</strong> Follow the prompts to set your project name and select your tech stack.</li>
+        <li>Commit <code>.ai-local/project.yaml</code> and symlinks</li>
       </ol>
     </div>
     <div>
@@ -700,7 +696,7 @@ git submodule update --init</code></pre>
 (function() {
   const slides = Array.from(document.querySelectorAll('.slide'));
   const nav = document.getElementById('dotnav');
-  const labels = ['Title','Guardrails','Workflow','Spec→Plan','Build→Ship','Cross-cutting','Lifecycle','Fragmentation','Answer','Architecture','Anatomy','Rules','Install','Adapt'];
+  const labels = ['Title','Guardrails','Workflow','Spec→Plan','Build→Ship','Maintenance','Lifecycle','Fragmentation','Answer','Architecture','Anatomy','Rules','Install','Adapt'];
   let current = 0;
 
   // Build nav dots

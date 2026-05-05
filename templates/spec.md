@@ -1,5 +1,5 @@
 ---
-id: <feature-slug>          # copied from the brief
+id: <feature-slug> # copied from the brief
 type: spec
 status: draft
 created: YYYY-MM-DD
@@ -23,6 +23,16 @@ reference the brief's scope if it answers the same question.
 The chosen approach in enough detail that another engineer could
 implement it without a second conversation. Walk through the
 flow end to end.
+
+## Folder Structure & Component Changes
+
+A file tree illustrating every file to be created, modified, or
+deleted, followed by a brief summary of the changes.
+
+```text
+src/
+└── ...
+```
 
 ## Data model
 
@@ -48,6 +58,4 @@ explored.
 
 ## Open questions
 
-- Questions the architect cannot resolve alone. Name the
-  escalation target per question. Must be resolved before
-  `status: approved`.
+*(Open questions are tracked in `docs/open-questions/<YYYY-MM-DD>-<feature-slug>.md` until resolved. This section will be populated with the resolved questions upon phase completion.)*

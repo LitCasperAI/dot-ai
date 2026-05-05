@@ -1,7 +1,7 @@
 # Testing
 
-Stack-agnostic testing discipline. Stacks declare *how* to run
-tests and *which* frameworks to use; this file declares *what*
+Stack-agnostic testing discipline. Stacks declare _how_ to run
+tests and _which_ frameworks to use; this file declares _what_
 good coverage looks like regardless of stack.
 
 ## What must be tested

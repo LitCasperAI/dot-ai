@@ -1,0 +1,12 @@
+# AUTO-GENERATED from .ai/skills/review-doc/SKILL.md — do not edit by hand.
+description = "Review a brief, spec, plan, test plan, or ADR for clarity, completeness, internal consistency, and rule alignment. Read-only review with blocking comments, change requests, and suggestions."
+
+prompt = """
+Load `.ai/skills/review-doc/SKILL.md` and execute its
+procedure. Read `.ai-local/project.yaml` first to resolve paths,
+personas, and rules. Follow the numbered Steps in `SKILL.md`
+exactly — do not improvise. The review is read-only; do not
+edit the reviewed doc or change its `status`.
+
+Doc to review: {{args}}
+"""

@@ -18,13 +18,16 @@ description: Turn a product requirement from the user into a technical spec via 
 2. `architect` (from `.ai/personas/architect.md`) — drafts the
    spec and authors ADRs. Invoked only after the brief is
    approved.
+3. `designer` (from `.ai/personas/designer.md`) — invoked in
+   parallel with the architect to generate ASCII mockups if the
+   task involves UI changes.
 
 ## Rules loaded
 
-From `.ai/project.yaml`:
+From `.ai-local/project.yaml`:
 
-- All entries in `rules.load`, in order. Later entries override
-  earlier by filename.
+- All entries in `rules.core`, in order.
+- Relevant entries from `rules.contextual` (specifically `03-documentation.md` and `04-doc-lifecycle.md`).
 - `personas.ownership` for doc-type → persona mapping.
 
 Skills never hardcode paths. If `project.yaml` is missing or
@@ -32,8 +35,7 @@ malformed, stop and ask.
 
 ## Steps
 
-1. **Orient.** Read `.ai/project.yaml`. Load the rules in
-   `rules.load` and the two personas. Resolve `paths.briefs`,
+1. **Orient.** Read `.ai-local/project.yaml`. Load the `rules.core` baseline and required `rules.contextual` files. Load the personas. Resolve `paths.briefs`,
    `paths.specs`, `paths.decisions`.
 
 2. **Draft the brief (product-analyst).** Derive a lowercase-
@@ -41,6 +43,8 @@ malformed, stop and ask.
    `<paths.briefs>/active/YYYY-MM-DD-<slug>.md` from
    `.ai/templates/brief.md`. Fill Problem, Users, Scope (in and
    out), Acceptance criteria, Success metrics, Open questions.
+   Create `docs/open-questions/YYYY-MM-DD-<slug>.md` from
+   `.ai/templates/open-questions.md` for transient questions.
    Frontmatter: `id: <slug>`, `type: brief`, `status: draft`,
    `owner: product-analyst`, `created` and `updated` set to
    today.
@@ -57,7 +61,7 @@ malformed, stop and ask.
 
 4. **Pause for approval.** Append to the brief's `## Notes`
    section: `_YYYY-MM-DD: Awaiting approval before architect
-   drafts spec._` Confirm `status: draft`. Stop. Tell the user:
+drafts spec._` Confirm `status: draft`. Stop. Tell the user:
    the brief is at `<path>`; approval is signalled either by
    editing the frontmatter to `status: approved`, or by
    re-invoking this skill with `approve=<brief-path>`. Both
@@ -69,22 +73,29 @@ malformed, stop and ask.
    only the approve flag was passed, flip the brief's
    `status` to `approved` and bump `updated` before continuing.
 
-6. **Rule Freshness Audit (architect).** Before drafting the
+6. **Open Questions Gate.** Check `docs/open-questions/YYYY-MM-DD-<slug>.md`.
+   If it exists and contains unanswered questions, halt and warn
+   the user. You must not proceed until all questions are answered.
+   Merge any answered questions into the brief or spec as appropriate.
+
+7. **Rule Freshness Audit (architect).** Before drafting the
    spec, the architect must perform a final check of the
    loaded rules against their current internal knowledge of
    the stack's best practices. If the rules mandate a legacy
    or deprecated library, the architect stops and flags the
    discrepancy to the user, proposing a modern alternative.
 
-7. **Draft the spec (architect).** Load the architect persona.
-   Create `<paths.specs>/active/YYYY-MM-DD-<slug>.md` from
+8. **Draft the spec (architect + designer).** Load the architect
+   and designer personas in parallel. Create
+   `<paths.specs>/active/YYYY-MM-DD-<slug>.md` from
    `.ai/templates/spec.md`. Copy `id` from the brief. Fill
    Scope, Approach, Data model, Interfaces, Alternatives
-   considered, Open questions. Frontmatter: `type: spec`,
-   `status: draft`, `owner: architect`, `related.brief` set to
-   the brief path.
+   considered, Open questions. If the task involves UI changes,
+   the designer appends an "ASCII Mockup" section. Frontmatter:
+   `type: spec`, `status: draft`, `owner: architect`,
+   `related.brief` set to the brief path.
 
-7. **Author ADRs (architect).** For every load-bearing or
+9. **Author ADRs (architect).** For every load-bearing or
    non-obvious decision made while drafting, create
    `<paths.decisions>/NNNN-<decision-slug>.md` from
    `.ai/templates/adr.md`. NNNN is the next monotonic integer
@@ -92,15 +103,15 @@ malformed, stop and ask.
    Set `related.spec` to the spec path. Append each ADR's id to
    the spec's `related.decisions` list.
 
-8. **Refresh the dashboard (post-spec).** Invoke
-   `refresh-docs` inline, as in Step 3. Covers the spec
-   creation, brief approval transition, and any ADR additions
-   in one refresh before hand-off.
+10. **Refresh the dashboard (post-spec).** Invoke
+    `refresh-docs` inline, as in Step 3. Covers the spec
+    creation, brief approval transition, and any ADR additions
+    in one refresh before hand-off.
 
-9. **Hand off.** Leave the spec at `status: draft`. Surface the
-   spec path and any ADR ids. Promotion to `in-review` and
-   `approved` happens through the architect's review flow, not
-   inside this skill. Plan creation is done by `create-plan`.
+11. **Hand off.** Leave the spec at `status: draft`. Surface the
+    spec path and any ADR ids. Promotion to `in-review` and
+    `approved` happens through the architect's review flow, not
+    inside this skill. Plan creation is done by `create-plan`.
 
 ## Outputs
 

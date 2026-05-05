@@ -39,7 +39,7 @@ defines the posture.
 - Tests use synthetic data. Do not copy production data, even
   scrubbed, into the repo.
 - Fixtures that look like real PII (real-shaped emails, plausible
-  names) are fine; data that *is* real PII is not.
+  names) are fine; data that _is_ real PII is not.
 
 ## Handling customer data at rest
 

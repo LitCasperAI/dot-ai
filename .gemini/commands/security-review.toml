@@ -1,11 +1,11 @@
 # AUTO-GENERATED from .ai/skills/security-review/SKILL.md — do not edit by hand.
-description = "Run a threat-model-driven security review on a spec, plan, or diff touching auth, PII, payments, crypto, session, or secret storage. Produces findings and, when load-bearing, an ADR."
+description = "Run a deep security review on a spec, plan, or diff. Authors a threat model, maps assets, and classifies findings. Produces ADRs for design changes."
 
 prompt = """
 Load `.ai/skills/security-review/SKILL.md` and execute its
-procedure. Read `.ai/project.yaml` first to resolve paths,
+procedure. Read `.ai-local/project.yaml` first to resolve paths,
 personas, and rules. Follow the numbered Steps in `SKILL.md`
-exactly — do not improvise. A stated threat model is mandatory.
+exactly — do not improvise.
 
-Input: {{args}}
+Security review arguments: {{args}}
 """

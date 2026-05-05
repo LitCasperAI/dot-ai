@@ -28,40 +28,39 @@ description: Drive the repository from a green main branch to a release-ready st
 
 ## Rules loaded
 
-From `.ai/project.yaml`: all entries under `rules.load`,
-particularly `global/05-version-control.md`,
-`global/08-secrets-and-data.md`, and the stack's build-and-release
-rule file. Stack rules name the concrete tools (CI provider,
-signing tool, submission tool); the skill does not hardcode
-them.
+From `.ai-local/project.yaml`: all entries under `rules.core`,
+plus any rule from `rules.contextual` relevant to release
+(version control, build-and-release).
 
 ## Steps
 
-1. **Orient.** Read `.ai/project.yaml`. Resolve `paths.*`. Load
-   every rule file listed under `rules.load`. Load the
+1. **Orient.** Read `.ai-local/project.yaml`. Resolve `paths.*`. Load
+   all `rules.core` and required `rules.contextual` files. Load the
    `release-engineer` persona.
 
 2. **Preflight (release-engineer).** Confirm:
+
    - The current branch is the project's declared release branch
      (`main` or the configured default).
    - The working tree is clean.
    - CI for the latest commit is green. Red or missing CI is a
      stop.
    - No plan under `<paths.plans>/active/` has `status:
-     in-progress` that is tagged for this release. In-progress
+  in-progress` that is tagged for this release. In-progress
      work does not ship.
-   Any failure here stops the skill with a clear message.
+     Any failure here stops the skill with a clear message.
 
 3. **Gather changes (release-engineer).** List commits since the
    last release tag (or since repo root if none). Group into:
+
    - **User-visible** — behaviour changes a user would notice.
    - **Internal** — refactors, test changes, infrastructure.
    - **Security-sensitive** — commits touching paths that would
      have activated `security-reviewer` in `review-change`.
-   If any security-sensitive change lacks a linked security
-   sign-off (ADR, PR review, or explicit acknowledgement in the
-   commit trail), stop and surface — the release does not
-   proceed without it.
+     If any security-sensitive change lacks a linked security
+     sign-off (ADR, PR review, or explicit acknowledgement in the
+     commit trail), stop and surface — the release does not
+     proceed without it.
 
 4. **Propose the version (release-engineer).** If `version=` was
    supplied, validate it is greater than the current version and
@@ -78,15 +77,16 @@ them.
 
 6. **Write release notes (release-engineer).** Compose release
    notes from step 3's grouping:
+
    - **Highlights** — user-visible changes, one line each.
    - **Fixes** — bug fixes, one line each.
    - **Internal** — brief summary, not item-by-item.
    - **Security** — present only if security-sensitive changes
      shipped.
-   Save to the path the stack's build-and-release rule names
-   (e.g. `CHANGELOG.md`, `docs/releases/<version>.md`). Commit
-   alongside the version bump or as a second commit — the stack
-   rule decides. Do not post to a store listing from this skill.
+     Save to the path the stack's build-and-release rule names
+     (e.g. `CHANGELOG.md`, `docs/releases/<version>.md`). Commit
+     alongside the version bump or as a second commit — the stack
+     rule decides. Do not post to a store listing from this skill.
 
 7. **Tag and push (release-engineer, requires user approval).**
    Create the annotated release tag (`v<version>`). Per

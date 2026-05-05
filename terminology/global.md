@@ -25,10 +25,11 @@ Two sections:
 - **Persona** — a stack-agnostic role under `.ai/personas/`
   (architect, implementer, reviewer, …). Describes how a role
   _operates_, not what the stack _is_.
-- **Rule** — a numbered file under `.ai/rules/` that constrains
-  how work is done. Load order is declared in
-  `project.yaml → rules.load`. Precedence: `local` > `stacks` >
-  `global` by same-filename replacement.
+- **Rule** — a numbered file under `.ai/rules/` (or `.ai-local/rules/`)
+  that constrains how work is done. `rules.core` are always loaded;
+  `rules.contextual` are loaded on-demand based on task alignment.
+  Precedence: `project` (`.ai-local/rules/`) > `stacks` > `global` by
+  same-filename replacement.
 - **Skill** — a user-invokable procedure under `.ai/skills/`,
   one folder per skill containing a `SKILL.md`. Skills are
   invoked by slash-command (e.g. `/implement`).
@@ -57,13 +58,6 @@ Two sections:
   that reports on the local health of the `.ai/` installation.
 
 ---
-
-## Domain terms — Your Company
-
-Starter list. Prefer these spellings and meanings; extend rather
-than redefine.
-
-- **Example** — This is where you put the explanation of the term
 
 ---
 

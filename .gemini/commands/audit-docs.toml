@@ -1,0 +1,12 @@
+# AUTO-GENERATED from .ai/skills/audit-docs/SKILL.md — do not edit by hand.
+description = "Sweep docs/ (briefs, specs, plans, test plans, ADRs, design system) for staleness, missing pieces, contradictions, and orphans. Read-only audit with findings classified Block / Drift / Info."
+
+prompt = """
+Load `.ai/skills/audit-docs/SKILL.md` and execute its
+procedure. Read `.ai-local/project.yaml` first to resolve paths,
+personas, and rules. Follow the numbered Steps in `SKILL.md`
+exactly — do not improvise. The audit is read-only; it must
+not edit any file or refresh the dashboard.
+
+Audit arguments: {{args}}
+"""

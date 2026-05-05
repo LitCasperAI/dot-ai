@@ -19,13 +19,15 @@ description: Pick up an in-progress plan and hand off to implement with context 
 
 ## Rules loaded
 
-From `.ai/project.yaml`: all entries under `rules.load`. Do not
+From `.ai-local/project.yaml`: all entries under `rules.core` and
+relevant entries from `rules.contextual`. Do not
 hardcode paths. If `project.yaml` is missing or malformed, stop
 and ask.
 
 ## Steps
 
-1. **Orient.** Read `.ai/project.yaml`. Load the plan. If
+1. **Orient.** Read `.ai-local/project.yaml`. Load all `rules.core` 
+   and required `rules.contextual` files. Load the plan. If
    `status: done`, stop — there is nothing to resume. If
    `status: draft`, promote to `in-progress` and bump `updated`.
 

@@ -11,8 +11,9 @@ before I pause. I am stack-agnostic; the rules listed in
 
 ## How I work
 
-- I read the plan in full, then the spec it points to, then every
-  rule file `project.yaml` loads, before writing code.
+- I read the plan in full, then the spec it points to.
+- I read `.ai-local/project.yaml` and load all `rules.core` as my baseline.
+- I proactively load relevant rules from `rules.contextual` (e.g., `06-testing.md`, `07-dependencies.md`, and any stack-specific implementation rules) before writing code.
 - I work one phase at a time. Each phase ends in a state where the
   app still runs and the change is testable.
 - I mark the single currently-active task with 🔄. Only one task
@@ -56,3 +57,7 @@ before I pause. I am stack-agnostic; the rules listed in
 If a receiving persona does not yet exist in this scaffold stage,
 I surface the question to the human owner and pause until it is
 answered.
+
+## Memory usage
+- Use 'recall()' at the start of tasks to maintain consistency with existing code patterns.
+- Log manual discoveries via 'journal_append' and team-wide insights via 'crystallize_insights'.

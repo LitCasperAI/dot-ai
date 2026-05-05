@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # install-symlinks.sh — Installs dot-ai symlinks into the consumer repository.
 #
 # Usage:
@@ -6,14 +6,16 @@
 #   .ai/.scripts/install-symlinks.sh --force     # overwrite existing non-symlinks
 #   .ai/.scripts/install-symlinks.sh --dry-run   # preview only
 #
-# Creates 5 symlinks:
+# Creates several symlinks:
 #   File symlinks (entry points → .ai/AGENTS.md):
 #     CLAUDE.md                       -> .ai/AGENTS.md
 #     GEMINI.md                       -> .ai/AGENTS.md
 #     .github/copilot-instructions.md -> ../.ai/AGENTS.md
-#   Directory symlinks (agent dirs → .ai/):
+#   Tool configuration symlinks (agent dirs → .ai/):
 #     .claude/skills                  -> ../.ai/skills
 #     .gemini/commands                -> ../.ai/.gemini/commands
+#     .gemini/policies                -> ../.ai/.gemini/policies
+#     .gemini/settings.json           -> ../.ai/.gemini/settings.json
 
 set -eu
 
@@ -22,11 +24,14 @@ set -eu
 # ---------------------------------------------------------------------------
 FORCE=false
 DRY_RUN=false
+INTERACTIVE=true
 
 for arg in "$@"; do
     case "$arg" in
-        --force)   FORCE=true ;;
-        --dry-run) DRY_RUN=true ;;
+        --force)           FORCE=true ;;
+        --dry-run)         DRY_RUN=true ;;
+        --interactive)     INTERACTIVE=true ;;
+        --non-interactive) INTERACTIVE=false ;;
         -h|--help)
             sed -n '2,17s/^# \?//p' "$0"
             exit 0
@@ -119,7 +124,7 @@ if [ -d "$AI_DIR/skills" ]; then
 fi
 
 echo ""
-echo "=== Gemini command symlinks ==="
+echo "=== Gemini configuration symlinks ==="
 
 if [ -d "$AI_DIR/.gemini/commands" ]; then
     for toml in "$AI_DIR/.gemini/commands"/*.toml; do
@@ -130,6 +135,24 @@ if [ -d "$AI_DIR/.gemini/commands" ]; then
         install_symlink "$link" "$target"
         ALL_LINKS="$ALL_LINKS $link"
     done
+fi
+
+if [ -d "$AI_DIR/.gemini/policies" ]; then
+    for toml in "$AI_DIR/.gemini/policies"/*.toml; do
+        [ -f "$toml" ] || continue
+        name="$(basename "$toml")"
+        link=".gemini/policies/$name"
+        target="../../.ai/.gemini/policies/$name"
+        install_symlink "$link" "$target"
+        ALL_LINKS="$ALL_LINKS $link"
+    done
+fi
+
+if [ -f "$AI_DIR/.gemini/settings.json" ]; then
+    link=".gemini/settings.json"
+    target="../../.ai/.gemini/settings.json"
+    install_symlink "$link" "$target"
+    ALL_LINKS="$ALL_LINKS $link"
 fi
 
 # ---------------------------------------------------------------------------
@@ -238,27 +261,144 @@ do
     fi
 done
 
-# Copy project.yaml.example → .ai-local/project.yaml if missing
+# Copy project.yaml.example → .ai-local/project.yaml if missing (or forced)
 project_yaml="$REPO_ROOT/.ai-local/project.yaml"
 project_yaml_example="$AI_DIR/project.yaml.example"
 
-if [ -f "$project_yaml" ]; then
+if [ -f "$project_yaml" ] && [ "$FORCE" = false ]; then
     echo "OK       .ai-local/project.yaml (already exists)"
 elif [ ! -f "$project_yaml_example" ]; then
-    echo "WARNING: SKIP     .ai/project.yaml.example not found" >&2
+    echo "WARNING: SKIP     .ai-local/project.yaml.example not found" >&2
 else
     if [ "$DRY_RUN" = true ]; then
-        echo "[dry-run] Would copy .ai/project.yaml.example -> .ai-local/project.yaml"
+        echo "[dry-run] Would create .ai-local/project.yaml from template"
     else
-        cp "$project_yaml_example" "$project_yaml"
-        echo "CREATED  .ai-local/project.yaml (copied from project.yaml.example)"
-        echo "         Edit .ai-local/project.yaml to set your project name, type, and stacks."
+        # Interactive prompts if enabled
+        PROJ_NAME="example-mobile-app"
+        STACK="react-native"
+
+        if [ "$INTERACTIVE" = true ] && [ "$DRY_RUN" = false ]; then
+            echo ""
+            echo "--- Project Configuration ---"
+            printf "Enter project name [%s]: " "$PROJ_NAME"
+            read -r input_name
+            [ -n "$input_name" ] && PROJ_NAME="$input_name"
+
+            echo "Available stacks:"
+            stacks=()
+            i=1
+            for d in "$AI_DIR/rules/stacks"/*/; do
+                [ -d "$d" ] || continue
+                sname=$(basename "$d")
+                stacks+=("$sname")
+                printf "  %d) %s\n" "$i" "$sname"
+                i=$((i+1))
+            done
+            printf "  %d) Custom...\n" "$i"
+            
+            STACK=""
+            while [ -z "$STACK" ]; do
+                printf "Select a stack (1-%d): " "$i"
+                read -r choice
+                if [ -n "$choice" ]; then
+                    if [ "$choice" -eq "$i" ]; then
+                        while [ -z "$STACK" ]; do
+                            printf "Enter custom stack name: "
+                            read -r custom_stack
+                            [ -n "$custom_stack" ] && STACK="$custom_stack"
+                        done
+                    elif [ "$choice" -ge 1 ] && [ "$choice" -lt "$i" ]; then
+                        STACK="${stacks[$((choice-1))]}"
+                    else
+                        echo "Invalid selection."
+                    fi
+                fi
+            done
+            echo "-----------------------------"
+        fi
+
+        # Create the file by replacing placeholders
+        sed -e "s/name: \"example-mobile-app\"/name: \"$PROJ_NAME\"/" \
+            -e "s/type: react-native/type: $STACK/" \
+            -e "s/stacks: \[react-native\]/stacks: [$STACK]/" \
+            -e "s|rules/stacks/react-native/|rules/stacks/$STACK/|" \
+            "$project_yaml_example" > "$project_yaml"
+
+        echo "CREATED  .ai-local/project.yaml (customized: name=$PROJ_NAME, stack=$STACK)"
     fi
 fi
 
 if [ "$DRY_RUN" != true ]; then
     git add .ai-local/
     echo "Staged .ai-local/ in git."
+fi
+
+# ---------------------------------------------------------------------------
+# Install Git Hooks
+# ---------------------------------------------------------------------------
+echo ""
+echo "=== Git Hooks ==="
+
+if [ -d "$REPO_ROOT/.git" ]; then
+    HOOKS_DIR="$REPO_ROOT/.git/hooks"
+    mkdir -p "$HOOKS_DIR"
+    
+    if [ -d "$SCRIPT_DIR/git-hooks" ]; then
+        for hook_file in "$SCRIPT_DIR/git-hooks"/*; do
+            hook_name=$(basename "$hook_file")
+            # Symlink target for new hooks (relative to .git/hooks/)
+            target="../../.ai/.scripts/git-hooks/$hook_name"
+            # Injection line for existing hooks (relative to repo root)
+            source_line="[ -f \".ai/.scripts/git-hooks/$hook_name\" ] && . \".ai/.scripts/git-hooks/$hook_name\""
+            
+            hook_path="$HOOKS_DIR/$hook_name"
+            
+            if [ -L "$hook_path" ]; then
+                echo "OK       git hook: $hook_name (symlink already exists)"
+            elif [ -e "$hook_path" ]; then
+                if grep -Fq ".ai/.scripts/git-hooks/$hook_name" "$hook_path"; then
+                    echo "OK       git hook: $hook_name (already integrated)"
+                elif [ "$FORCE" = true ]; then
+                    if [ "$DRY_RUN" = true ]; then
+                        echo "[dry-run] Would overwrite existing git hook: $hook_name"
+                    else
+                        ln -sf "$target" "$hook_path"
+                        chmod +x "$hook_path"
+                        echo "OVERWROTE git hook: $hook_name"
+                    fi
+                else
+                    if [ "$DRY_RUN" = true ]; then
+                        echo "[dry-run] Would inject safety trigger into: $hook_name"
+                    else
+                        # Prepend the trigger after the shebang (if any), otherwise at the top
+                        tmp_hook=$(mktemp)
+                        if head -n 1 "$hook_path" | grep -q "^#!"; then
+                            head -n 1 "$hook_path" > "$tmp_hook"
+                            echo "$source_line" >> "$tmp_hook"
+                            tail -n +2 "$hook_path" >> "$tmp_hook"
+                        else
+                            echo "$source_line" > "$tmp_hook"
+                            cat "$hook_path" >> "$tmp_hook"
+                        fi
+                        cat "$tmp_hook" > "$hook_path"
+                        rm "$tmp_hook"
+                        chmod +x "$hook_path"
+                        echo "INJECTED safety trigger into: $hook_name"
+                    fi
+                fi
+            else
+                if [ "$DRY_RUN" = true ]; then
+                    echo "[dry-run] Would install git hook symlink: $hook_name -> $target"
+                else
+                    ln -s "$target" "$hook_path"
+                    chmod +x "$hook_path"
+                    echo "INSTALLED git hook: $hook_name"
+                fi
+            fi
+        done
+    fi
+else
+    echo "SKIP     .git directory not found (skipping hooks)"
 fi
 
 echo ""

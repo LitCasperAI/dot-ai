@@ -131,6 +131,46 @@ if (Test-Path $geminiCmdsDir) {
     }
 }
 
+# Check .gemini/policies/*.toml
+$geminiPoliciesDir = Join-Path $RepoRoot '.gemini/policies'
+if (Test-Path $geminiPoliciesDir) {
+    Get-ChildItem $geminiPoliciesDir -File -Filter '*.toml' | ForEach-Object {
+        $item = Get-Item $_.FullName -Force
+        if (-not ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { return }
+
+        # Does the submodule still have this policy?
+        $targetToml = Join-Path $AiDir ".gemini/policies/$($_.Name)"
+        if (Test-Path $targetToml) { return }
+
+        $relPath = ".gemini/policies/$($_.Name)"
+        if ($DryRun) {
+            Write-Host "[dry-run] Would remove dead symlink: $relPath"
+        } else {
+            git rm -f $relPath 2>$null
+            Write-Host "REMOVED  $relPath (policy removed upstream)"
+        }
+        $deadCount++
+    }
+}
+
+# Check .gemini/settings.json
+$geminiSettings = Join-Path $RepoRoot '.gemini/settings.json'
+if (Test-Path $geminiSettings) {
+    $item = Get-Item $geminiSettings -Force
+    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+        if (-not (Test-Path (Join-Path $AiDir '.gemini/settings.json'))) {
+            $relPath = ".gemini/settings.json"
+            if ($DryRun) {
+                Write-Host "[dry-run] Would remove dead symlink: $relPath"
+            } else {
+                git rm -f $relPath 2>$null
+                Write-Host "REMOVED  $relPath (settings.json removed upstream)"
+            }
+            $deadCount++
+        }
+    }
+}
+
 if ($deadCount -eq 0) {
     Write-Host "No dead symlinks found."
 } else {

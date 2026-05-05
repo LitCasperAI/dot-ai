@@ -117,13 +117,27 @@ if (Test-Path $skillsDir) {
 }
 
 $geminiSymlinks = @()
-$geminiDir = Join-Path $ScriptDir '.gemini/commands'
-if (Test-Path $geminiDir) {
-    Get-ChildItem $geminiDir -File -Filter '*.toml' | ForEach-Object {
+$geminiCmdsDir = Join-Path $ScriptDir '.gemini/commands'
+if (Test-Path $geminiCmdsDir) {
+    Get-ChildItem $geminiCmdsDir -File -Filter '*.toml' | ForEach-Object {
         $name = $_.Name
         # Gemini: .gemini/commands/<name>.toml → ../../.ai/.gemini/commands/<name>.toml
         $geminiSymlinks += @{ Link = ".gemini/commands/$name"; Target = "../../.ai/.gemini/commands/$name" }
     }
+}
+
+$geminiPoliciesDir = Join-Path $ScriptDir '.gemini/policies'
+if (Test-Path $geminiPoliciesDir) {
+    Get-ChildItem $geminiPoliciesDir -File -Filter '*.toml' | ForEach-Object {
+        $name = $_.Name
+        # Gemini: .gemini/policies/<name>.toml → ../../.ai/.gemini/policies/<name>.toml
+        $geminiSymlinks += @{ Link = ".gemini/policies/$name"; Target = "../../.ai/.gemini/policies/$name" }
+    }
+}
+
+$geminiSettings = Join-Path $ScriptDir '.gemini/settings.json'
+if (Test-Path $geminiSettings) {
+    $geminiSymlinks += @{ Link = '.gemini/settings.json'; Target = '../../.ai/.gemini/settings.json' }
 }
 
 # ---------------------------------------------------------------------------
@@ -191,7 +205,7 @@ foreach ($entry in $skillSymlinks) {
 }
 
 Write-Host ""
-Write-Host "=== Gemini command symlinks ($($geminiSymlinks.Count) commands) ==="
+Write-Host "=== Gemini configuration symlinks ($($geminiSymlinks.Count) files) ==="
 foreach ($entry in $geminiSymlinks) {
     Install-Symlink -LinkRelative $entry.Link -Target $entry.Target
 }
@@ -321,13 +335,57 @@ $projectYamlExample = Join-Path $ScriptDir 'project.yaml.example'
 if (Test-Path $projectYaml) {
     Write-Host "OK       .ai-local/project.yaml (already exists)"
 } elseif (-not (Test-Path $projectYamlExample)) {
-    Write-Warning "SKIP     .ai/project.yaml.example not found — cannot scaffold project.yaml"
+    Write-Warning "SKIP     .ai-local/project.yaml.example not found — cannot scaffold project.yaml"
 } elseif ($DryRun) {
-    Write-Host "[dry-run] Would copy .ai/project.yaml.example -> .ai-local/project.yaml"
+    Write-Host "[dry-run] Would create .ai-local/project.yaml from template"
 } else {
-    Copy-Item $projectYamlExample $projectYaml
-    Write-Host "CREATED  .ai-local/project.yaml (copied from project.yaml.example)"
-    Write-Host "         Edit .ai-local/project.yaml to set your project name, type, and stacks."
+    $projName = "example-mobile-app"
+    $stack = "react-native"
+
+    # Interactive Project Configuration
+    if (-not $DryRun) {
+        Write-Host ""
+        Write-Host "--- Project Configuration ---"
+        $inputName = Read-Host "Enter project name [$projName]"
+        if ($inputName) { $projName = $inputName }
+
+        $stacksDir = Join-Path $ScriptDir "rules/stacks"
+        if (Test-Path $stacksDir) {
+            $availableStacks = Get-ChildItem $stacksDir -Directory
+            Write-Host "Available stacks:"
+            for ($i = 0; $i -lt $availableStacks.Count; $i++) {
+                Write-Host ("  {0}) {1}" -f ($i + 1), $availableStacks[$i].Name)
+            }
+            Write-Host ("  {0}) Custom..." -f ($availableStacks.Count + 1))
+
+            $stack = $null
+            while ($null -eq $stack) {
+                $choice = Read-Host "Select a stack (1-$($availableStacks.Count + 1))"
+                if ($choice) {
+                    if ($choice -eq ($availableStacks.Count + 1)) {
+                        while ($null -eq $stack) {
+                            $customStack = Read-Host "Enter custom stack name"
+                            if ($customStack) { $stack = $customStack }
+                        }
+                    } elseif ($choice -match '^\d+$' -and $choice -ge 1 -and $choice -le $availableStacks.Count) {
+                        $stack = $availableStacks[$choice - 1].Name
+                    } else {
+                        Write-Host "Invalid selection."
+                    }
+                }
+            }
+        }
+        Write-Host "-----------------------------"
+    }
+
+    $content = Get-Content $projectYamlExample -Raw
+    $content = $content -replace 'name: "example-mobile-app"', ('name: "{0}"' -f $projName)
+    $content = $content -replace 'type: react-native', ('type: {0}' -f $stack)
+    $content = $content -replace 'stacks: \[react-native\]', ('stacks: [{0}]' -f $stack)
+    $content = $content -replace 'rules/stacks/react-native/', ('rules/stacks/{0}/' -f $stack)
+    
+    Set-Content -Path $projectYaml -Value $content
+    Write-Host "CREATED  .ai-local/project.yaml (customized: name=$projName, stack=$stack)"
 }
 
 if (-not $DryRun) {

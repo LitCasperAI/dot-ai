@@ -1,0 +1,12 @@
+# AUTO-GENERATED from .ai/skills/audit-structure/SKILL.md — do not edit by hand.
+description = "Sweep the codebase (folder layout, component shape, module boundaries, test colocation) for divergences from the loaded stack rules. Read-only audit with findings classified Block / Drift / Info."
+
+prompt = """
+Load `.ai/skills/audit-structure/SKILL.md` and execute its
+procedure. Read `.ai-local/project.yaml` first to resolve paths,
+personas, and rules. Follow the numbered Steps in `SKILL.md`
+exactly — do not improvise. The audit is read-only; it must
+not edit any source file.
+
+Audit arguments: {{args}}
+"""

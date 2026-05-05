@@ -64,7 +64,7 @@ a specific feature, it does not belong in `common/`.
   that other features may call.
 - **Other features and global code import only from the
   barrel.** `import { registerBillingRoutes } from
-  '@/features/billing'` — yes. Deep imports — forbidden.
+'@/features/billing'` — yes. Deep imports — forbidden.
 - **When code in `features/<x>/` is needed by a second feature,
   it graduates.** Move it to `common/` (utility), `core/`
   (infrastructure), or expose it through a service call from

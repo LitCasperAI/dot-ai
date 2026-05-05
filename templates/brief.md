@@ -46,8 +46,7 @@ No more.
 
 ## Open questions
 
-- Questions the analyst cannot answer alone. Must be addressed
-  before `status: approved`.
+*(Open questions are tracked in `docs/open-questions/<YYYY-MM-DD>-<feature-slug>.md` until resolved. This section will be populated with the resolved questions upon phase completion.)*
 
 ## Notes
 

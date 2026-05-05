@@ -18,9 +18,41 @@ not relax them.
 - Commit messages use the imperative mood: "add retry to uploader,"
   not "added" or "adds."
 - The subject line is under 72 characters. The body explains
-  *why*, not *what*; the diff already shows what.
+  _why_, not _what_; the diff already shows what.
 - Do not amend a commit that has been pushed to a shared branch.
   Add a new commit instead.
+
+## Multi-line messages — use a file
+
+Shell escaping of `\n` inside `git commit -m` and `gh pr create
+--body` is **unreliable across platforms** (literal `\n` on
+Windows cmd/PowerShell, swallowed newlines in some CI shells).
+Always use a **temp file** for any message longer than a single
+line:
+
+```bash
+# git commit
+cat > /tmp/commit-msg.md <<'EOF'
+feat: add scaffold governance rule
+
+Adds 13-scaffold-governance.md to the global rule set.
+Ensures agents know to contribute general scaffold content
+via PR to beep-dot-ai-root, not by editing the submodule.
+EOF
+git commit -F /tmp/commit-msg.md
+
+# gh pr create / edit
+cat > /tmp/pr-body.md <<'EOF'
+## Summary
+…multi-line description…
+EOF
+gh pr create --title "feat: …" --body-file /tmp/pr-body.md
+```
+
+- Use `git commit -F <file>`, not `-m` with embedded newlines.
+- Use `gh pr create --body-file <file>`, not `--body`.
+- Use `gh pr edit --body-file <file>` for updates.
+- Clean up the temp file after the command succeeds.
 
 ## Pushing and merging
 

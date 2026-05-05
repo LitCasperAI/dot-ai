@@ -1,0 +1,6 @@
+[[rule]]
+toolName = ["write_file", "replace"]
+decision = "allow"
+priority = 100
+modes = ["plan"]
+argsPattern = "\"file_path\":\"[^\"]+[\\\\\\\\/]docs[\\\\\\\\/]plans[\\\\\\\\/]active[\\\\\\\\/][\\\\w-]+\\\\.md\""

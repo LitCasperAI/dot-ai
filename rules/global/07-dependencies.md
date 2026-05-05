@@ -41,3 +41,8 @@ lockfile, and upgrade tooling; this file declares the posture.
 - Do not install from a fork, a gist, or a random tarball. If the
   canonical registry does not have what you need, that is a
   conversation, not a workaround.
+
+## Automated Management
+
+- For checking, upgrading, and securing project dependencies based on external scans (e.g. WIZ CVEs) and best practices, invoke the `/manage-dependencies` skill (which activates the `dependency-manager` persona).
+- **Security Precaution:** Any installation or modification of packages MUST be explicitly approved by the user and MAY NEVER be performed automatically. Always strictly validate the exact package name and version against the official registry or the existing lockfile before executing shell commands to mitigate command injection or typo-squatting risks.

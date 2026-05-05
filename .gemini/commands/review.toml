@@ -1,0 +1,11 @@
+# AUTO-GENERATED from .ai/skills/review/SKILL.md — do not edit by hand.
+description = "Unified entry point for all review types. Analyzes context and delegates to review-doc, review-change, or runs security-review in parallel."
+
+prompt = """
+Load `.ai/skills/review/SKILL.md` and execute its
+procedure. Read `.ai-local/project.yaml` first to resolve paths,
+personas, and rules. Follow the numbered Steps in `SKILL.md`
+exactly — do not improvise.
+
+Context: {{args}}
+"""

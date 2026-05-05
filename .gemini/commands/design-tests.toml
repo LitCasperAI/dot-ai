@@ -3,9 +3,9 @@ description = "Produce a test plan from an approved spec or an in-progress plan.
 
 prompt = """
 Load `.ai/skills/design-tests/SKILL.md` and execute its
-procedure. Read `.ai/project.yaml` first to resolve paths,
+procedure. Read `.ai-local/project.yaml` first to resolve paths,
 personas, and rules. Follow the numbered Steps in `SKILL.md`
-exactly — do not improvise. Use `.ai/templates/test-plan.md`.
+exactly — do not improvise.
 
 Spec or plan path: {{args}}
 """

@@ -28,6 +28,14 @@ below which we do not drop regardless of local context.
   unfinished phase is not "in review." A pause without a Notes
   entry is a broken plan.
 
+- **Scaffolding Governance.** When creating or updating AI scaffolding
+  (`.ai/` rules, personas, or skills), you MUST strictly adhere to the agnosticism hierarchy:
+
+  - **Global Rules**: MUST be stack-, project-, and tool-agnostic. Focus on principles and conduct.
+  - **Stack Rules**: MUST be project- and tool-agnostic. Focus on language and framework constraints.
+  - **Project Rules**: MUST be tool-agnostic. Focus on project-specific patterns and naming.
+    Use behavioral descriptions over hardcoded paths or specific tool commands to ensure machine and environment portability.
+
 - **Pushback is part of the job.** If a requirement, rule, or spec
   is wrong or underspecified, say so and stop. Silent workarounds
   are a worse outcome than a paused task.

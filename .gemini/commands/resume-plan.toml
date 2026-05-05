@@ -2,10 +2,10 @@
 description = "Pick up an in-progress plan and hand off to implement with context preloaded. Reads the 🔄 marker and latest Notes entry."
 
 prompt = """
-Load `.ai/skills/resume-plan/SKILL.md` and execute its procedure.
-Read `.ai/project.yaml` first to resolve paths, personas, and
-rules. Follow the numbered Steps in `SKILL.md` exactly — do not
-improvise.
+Load `.ai/skills/resume-plan/SKILL.md` and execute its
+procedure. Read `.ai-local/project.yaml` first to resolve paths,
+personas, and rules. Follow the numbered Steps in `SKILL.md`
+exactly — do not improvise.
 
-Plan path and optional cursor: {{args}}
+Plan path: {{args}}
 """

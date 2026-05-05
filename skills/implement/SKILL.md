@@ -6,7 +6,7 @@ description: Implement an approved plan file under docs/plans/active/ phase by p
 ## Inputs
 
 - Path to a plan file in `<paths.plans>/active/` (path resolved via
-  `.ai/project.yaml`) with `status: in-progress`. `status: draft`
+  `.ai-local/project.yaml`) with `status: in-progress`. `status: draft`
   is accepted and promoted to `in-progress` in step 1.
 - Optional: a specific phase to work on. If omitted, continue from
   the task marked 🔄, or from the first unchecked task in the
@@ -21,13 +21,10 @@ description: Implement an approved plan file under docs/plans/active/ phase by p
 
 ## Rules loaded
 
-From `.ai/project.yaml`:
+From `.ai-local/project.yaml`:
 
-- All entries in `rules.load`, applied in order. When the same
-  filename appears in more than one loaded directory, the later
-  entry wins.
-- The `project.stacks` list determines which
-  `rules/stacks/<stack>/` directory applies.
+- All entries in `rules.core`, applied in order.
+- Relevant entries from `rules.contextual` (specifically `06-testing.md`, `07-dependencies.md`, and any stack-specific implementation rules).
 
 This skill does not hardcode rule paths. If `project.yaml` is
 missing, malformed, or references files that do not exist, stop
@@ -35,10 +32,10 @@ and ask.
 
 ## Steps
 
-1. **Orient.** `implementer` reads `.ai/project.yaml`, then loads
+1. **Orient.** `implementer` reads `.ai-local/project.yaml`, then loads
    the plan file, the spec it references, and the brief it
-   references. Loads the persona and every rule file named by
-   `rules.load`. If `status` on the plan is `draft`, promote it to
+   references. Loads the persona, all `rules.core`, and required
+   `rules.contextual` files. If `status` on the plan is `draft`, promote it to
    `in-progress` and bump `updated`.
 
 2. **Locate the cursor.** `implementer` finds the 🔄 marker. If
@@ -68,10 +65,14 @@ and ask.
    date, code state, next actionable step, branch name. Skipping
    this is a regression.
 
-8. **On plan completion.** Sets `status: done` in the frontmatter
-   and bumps `updated`. Does **not** move files or archive in this
-   skill — archival is handled by `/archive-plan`. Surfaces that
-   the plan is ready to archive.
+8. **On plan completion.** **Open Questions Gate:** Extract the exact date prefix
+   from the plan's filename. Check `docs/open-questions/<exact-date-prefix>-<id>.md`.
+   If it exists and contains unanswered questions, stop and warn the user. You
+   must not mark the plan `done` until all questions are answered.
+   Once clear, set `status: done` in the frontmatter and bump
+   `updated`. Does **not** move files or archive in this skill —
+   archival is handled by `/archive-plan`. Surfaces that the plan
+   is ready to archive.
 
 ## Outputs
 

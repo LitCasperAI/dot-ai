@@ -22,7 +22,7 @@ one thing that, if resolved, would change the verdict.
 Comments that prevent merge. Each entry:
 
 - **`<file>:<line>`** — <one-line issue>. Rule: `<rules path or
-  principle>`. Fix: <smallest correct change>.
+principle>`. Fix: <smallest correct change>.
 
 If there are no blocking comments, write "None." explicitly —
 silence is not the same as approval.

@@ -1,5 +1,5 @@
 ---
-id: <feature-slug>          # copied from the spec
+id: <feature-slug> # copied from the spec
 type: test-plan
 status: draft
 created: YYYY-MM-DD
@@ -7,8 +7,8 @@ updated: YYYY-MM-DD
 owner: tester
 related:
   brief: <path under briefs/ if the spec links one>
-  spec:  <path under specs/active or specs/archive>
-  plan:  <path under plans/active if a plan exists, else null>
+  spec: <path under specs/active or specs/archive>
+  plan: <path under plans/active if a plan exists, else null>
 ---
 
 # <Feature> — Test Plan

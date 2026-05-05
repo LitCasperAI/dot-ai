@@ -6,9 +6,9 @@ created: YYYY-MM-DD
 updated: YYYY-MM-DD
 owner: implementer
 related:
-  brief:     docs/briefs/active/YYYY-MM-DD-<slug>.md
-  spec:      docs/specs/active/YYYY-MM-DD-<slug>.md
-  test_plan: null   # set to docs/plans/active/YYYY-MM-DD-<slug>-tests.md once design-tests has run
+  brief: docs/briefs/active/YYYY-MM-DD-<slug>.md
+  spec: docs/specs/active/YYYY-MM-DD-<slug>.md
+  test_plan: null # set to docs/plans/active/YYYY-MM-DD-<slug>-tests.md once design-tests has run
 progress:
   total: 0
   done: 0
@@ -21,22 +21,26 @@ progress:
 
 Link to spec: `docs/specs/active/YYYY-MM-DD-<slug>.md`
 Link to brief: `docs/briefs/active/YYYY-MM-DD-<slug>.md`
+Link to open questions: `docs/open-questions/YYYY-MM-DD-<slug>.md`
 
 ## Phase 1 — <Name>
 
 - [ ] 🔄 First task
 - [ ] Next task
-- [ ] Last task in this phase (leaves app in a working, testable state)
+- [ ] Last task in this phase
+- [ ] **Validation**: Execute stack-mandated validation (e.g., lint, build, test).
 
 ## Phase 2 — <Name>
 
 - [ ] Task
 - [ ] Task
+- [ ] **Validation**: Execute stack-mandated validation (e.g., lint, build, test).
 
 ## Phase 3 — <Name>
 
 - [ ] Task
 - [ ] Task
+- [ ] **Validation**: Execute stack-mandated validation (e.g., lint, build, test).
 
 ## Notes
 

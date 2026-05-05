@@ -121,6 +121,41 @@ if [ -d ".gemini/commands" ]; then
     done
 fi
 
+# Check .gemini/policies/*.toml
+if [ -d ".gemini/policies" ]; then
+    for toml in .gemini/policies/*.toml; do
+        [ -L "$toml" ] || continue
+
+        name="$(basename "$toml")"
+        target_toml="$AI_DIR/.gemini/policies/$name"
+
+        if [ ! -f "$target_toml" ]; then
+            rel_path=".gemini/policies/$name"
+            if [ "$DRY_RUN" = true ]; then
+                echo "[dry-run] Would remove dead symlink: $rel_path"
+            else
+                git rm -f "$rel_path" 2>/dev/null || rm -f "$rel_path"
+                echo "REMOVED  $rel_path (policy removed upstream)"
+            fi
+            dead_count=$((dead_count + 1))
+        fi
+    done
+fi
+
+# Check .gemini/settings.json
+if [ -L ".gemini/settings.json" ]; then
+    if [ ! -f "$AI_DIR/.gemini/settings.json" ]; then
+        rel_path=".gemini/settings.json"
+        if [ "$DRY_RUN" = true ]; then
+            echo "[dry-run] Would remove dead symlink: $rel_path"
+        else
+            git rm -f "$rel_path" 2>/dev/null || rm -f "$rel_path"
+            echo "REMOVED  $rel_path (settings.json removed upstream)"
+        fi
+        dead_count=$((dead_count + 1))
+    fi
+fi
+
 if [ "$dead_count" -eq 0 ]; then
     echo "No dead symlinks found."
 else

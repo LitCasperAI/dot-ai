@@ -9,7 +9,7 @@ are not done.
 ## Semantic HTML first
 
 - **Use the right element.** A `<button>` is a button; a `<div
-  onClick>` is not. Links (`<a>`) go to URLs; buttons trigger
+onClick>` is not. Links (`<a>`) go to URLs; buttons trigger
   actions. `next/link` wraps `<a>` — keep it that way.
 - **One `<h1>` per page.** Headings are hierarchical; do not
   jump levels to get a size.

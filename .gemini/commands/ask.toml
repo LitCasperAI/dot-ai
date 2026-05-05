@@ -1,0 +1,11 @@
+# AUTO-GENERATED from .ai/skills/ask/SKILL.md — do not edit by hand.
+description = "Ask a question about the project's rules, terminology, architecture, or history and get a cited answer."
+
+prompt = """
+Load `.ai/skills/ask/SKILL.md` and execute its
+procedure. Read `.ai-local/project.yaml` first to resolve paths,
+personas, and rules. Follow the numbered Steps in `SKILL.md`
+exactly — do not improvise.
+
+Question: {{args}}
+"""

@@ -19,9 +19,15 @@ something that should trigger pushback in code review.
 - **No `any` type.** Use `unknown` if the type is genuinely
   unknown and narrow it before use. If you're tempted to reach
   for `any`, that's a signal the types are modelled wrong — fix
-  the model, not the escape hatch.
+  the model, not the escape hatch. The ban on `any` includes type
+  casting (`as any`). Bypassing the type system is a failure of
+  architectural standard.
 - **Props are typed explicitly.** `type Props = { ... }` above
   the component. No inferring props from usage.
+- **Strict Typing in Tests & Mocks.** Do NOT use `any` in test files
+  or `jest-setup.js`. Use `unknown`, `jest.Mock`, or define local
+  interfaces for partial mocks. If a library type is missing,
+  investigate the proper `@types` or cast to a safe alternative.
 - **Hermes is the JS engine.** Do not ship code that relies on
   JSC-only behaviour.
 
@@ -141,6 +147,21 @@ the tree grows:
 - **Feature boundaries are enforced.** Other features or global
   code import from a feature's `index.ts` barrel only, never
   from its internals. See `05-folder-structure.md`.
+
+## Implementation & Validation Discipline
+
+- **Dependency Discovery**: When building new features, you MUST perform a comprehensive search of the existing codebase to identify relevant API services, hooks, and providers. Do not implement mock data or duplicate functionality without confirming with the user that the necessary backend or service is unavailable.
+- **Per-Step Verification**: After completing **every** implementation step
+  defined in a plan:
+  - **Format**: Run `prettier --write` on all modified files.
+  - **Lint**: Run `yarn lint` (or direct `eslint` binary) to catch
+    syntax and style issues.
+  - **Typecheck**: Run `yarn typecheck` (or direct `tsc` binary) to
+    verify type safety.
+  - **Test**: Run `yarn test` for any new or affected tests.
+- **Stop on Failure**: If any check fails, you **MUST** stop and fix
+  the issue before moving to the next step. Never batch validation
+  at the end of a feature.
 
 ## Things that are out of scope for this file
 

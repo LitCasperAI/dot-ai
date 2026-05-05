@@ -2,8 +2,8 @@
 
 How individual components are authored, split, and composed
 across the server/client boundary. This file covers
-*within-component* structure; `05-folder-structure.md` covers
-*between-component* organisation.
+_within-component_ structure; `05-folder-structure.md` covers
+_between-component_ organisation.
 
 ---
 

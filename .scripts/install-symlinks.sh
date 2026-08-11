@@ -2,9 +2,15 @@
 # install-symlinks.sh — Installs dot-ai symlinks into the consumer repository.
 #
 # Usage:
-#   .ai/.scripts/install-symlinks.sh            # normal run
+#   .ai/.scripts/install-symlinks.sh            # normal run (installs all tools)
 #   .ai/.scripts/install-symlinks.sh --force     # overwrite existing non-symlinks
 #   .ai/.scripts/install-symlinks.sh --dry-run   # preview only
+#   .ai/.scripts/install-symlinks.sh --claude    # only install Claude symlinks
+#   .ai/.scripts/install-symlinks.sh --gemini    # only install Gemini symlinks
+#   .ai/.scripts/install-symlinks.sh --copilot   # only install Copilot symlinks
+#
+# --claude, --gemini and --copilot can be combined to select multiple tools.
+# If none of them are passed, all tools are installed (default behaviour).
 #
 # Creates several symlinks:
 #   File symlinks (entry points → .ai/AGENTS.md):
@@ -25,6 +31,9 @@ set -eu
 FORCE=false
 DRY_RUN=false
 INTERACTIVE=true
+DO_CLAUDE=false
+DO_GEMINI=false
+DO_COPILOT=false
 
 for arg in "$@"; do
     case "$arg" in
@@ -32,13 +41,23 @@ for arg in "$@"; do
         --dry-run)         DRY_RUN=true ;;
         --interactive)     INTERACTIVE=true ;;
         --non-interactive) INTERACTIVE=false ;;
+        --claude)          DO_CLAUDE=true ;;
+        --gemini)          DO_GEMINI=true ;;
+        --copilot)         DO_COPILOT=true ;;
         -h|--help)
-            sed -n '2,17s/^# \?//p' "$0"
+            sed -n '2,21s/^# \?//p' "$0"
             exit 0
             ;;
         *) echo "Unknown option: $arg" >&2; exit 1 ;;
     esac
 done
+
+# If none of --claude/--gemini/--copilot were passed, install all of them.
+if [ "$DO_CLAUDE" = false ] && [ "$DO_GEMINI" = false ] && [ "$DO_COPILOT" = false ]; then
+    DO_CLAUDE=true
+    DO_GEMINI=true
+    DO_COPILOT=true
+fi
 
 # ---------------------------------------------------------------------------
 # Resolve repo root
@@ -103,56 +122,70 @@ install_symlink() {
 # Create all symlinks
 # ---------------------------------------------------------------------------
 echo "=== File symlinks (entry points) ==="
-install_symlink "CLAUDE.md"                       ".ai/AGENTS.md"
-install_symlink "GEMINI.md"                       ".ai/AGENTS.md"
-install_symlink ".github/copilot-instructions.md" "../.ai/AGENTS.md"
+ALL_LINKS=""
+
+if [ "$DO_CLAUDE" = true ]; then
+    install_symlink "CLAUDE.md" ".ai/AGENTS.md"
+    ALL_LINKS="$ALL_LINKS CLAUDE.md"
+fi
+if [ "$DO_GEMINI" = true ]; then
+    install_symlink "GEMINI.md" ".ai/AGENTS.md"
+    ALL_LINKS="$ALL_LINKS GEMINI.md"
+fi
+if [ "$DO_COPILOT" = true ]; then
+    install_symlink ".github/copilot-instructions.md" "../.ai/AGENTS.md"
+    ALL_LINKS="$ALL_LINKS .github/copilot-instructions.md"
+fi
 
 # Dynamically discover skills and Gemini commands from the submodule
-echo ""
-echo "=== Claude/Copilot skill symlinks ==="
-ALL_LINKS="CLAUDE.md GEMINI.md .github/copilot-instructions.md"
+if [ "$DO_CLAUDE" = true ]; then
+    echo ""
+    echo "=== Claude skill symlinks ==="
 
-if [ -d "$AI_DIR/skills" ]; then
-    for skill_dir in "$AI_DIR/skills"/*/; do
-        [ -d "$skill_dir" ] || continue
-        name="$(basename "$skill_dir")"
-        link=".claude/skills/$name/SKILL.md"
-        target="../../../.ai/skills/$name/SKILL.md"
-        install_symlink "$link" "$target"
-        ALL_LINKS="$ALL_LINKS $link"
-    done
+    if [ -d "$AI_DIR/skills" ]; then
+        for skill_dir in "$AI_DIR/skills"/*/; do
+            [ -d "$skill_dir" ] || continue
+            name="$(basename "$skill_dir")"
+            link=".claude/skills/$name/SKILL.md"
+            target="../../../.ai/skills/$name/SKILL.md"
+            install_symlink "$link" "$target"
+            ALL_LINKS="$ALL_LINKS $link"
+        done
+    fi
 fi
 
-echo ""
-echo "=== Gemini configuration symlinks ==="
+if [ "$DO_GEMINI" = true ]; then
+    echo ""
+    echo "=== Gemini configuration symlinks ==="
 
-if [ -d "$AI_DIR/.gemini/commands" ]; then
-    for toml in "$AI_DIR/.gemini/commands"/*.toml; do
-        [ -f "$toml" ] || continue
-        name="$(basename "$toml")"
-        link=".gemini/commands/$name"
-        target="../../.ai/.gemini/commands/$name"
+    if [ -d "$AI_DIR/.gemini/commands" ]; then
+        for toml in "$AI_DIR/.gemini/commands"/*.toml; do
+            [ -f "$toml" ] || continue
+            name="$(basename "$toml")"
+            link=".gemini/commands/$name"
+            target="../../.ai/.gemini/commands/$name"
+            install_symlink "$link" "$target"
+            ALL_LINKS="$ALL_LINKS $link"
+        done
+    fi
+
+    if [ -d "$AI_DIR/.gemini/policies" ]; then
+        for toml in "$AI_DIR/.gemini/policies"/*.toml; do
+            [ -f "$toml" ] || continue
+            name="$(basename "$toml")"
+            link=".gemini/policies/$name"
+            target="../../.ai/.gemini/policies/$name"
+            install_symlink "$link" "$target"
+            ALL_LINKS="$ALL_LINKS $link"
+        done
+    fi
+
+    if [ -f "$AI_DIR/.gemini/settings.json" ]; then
+        link=".gemini/settings.json"
+        target="../../.ai/.gemini/settings.json"
         install_symlink "$link" "$target"
         ALL_LINKS="$ALL_LINKS $link"
-    done
-fi
-
-if [ -d "$AI_DIR/.gemini/policies" ]; then
-    for toml in "$AI_DIR/.gemini/policies"/*.toml; do
-        [ -f "$toml" ] || continue
-        name="$(basename "$toml")"
-        link=".gemini/policies/$name"
-        target="../../.ai/.gemini/policies/$name"
-        install_symlink "$link" "$target"
-        ALL_LINKS="$ALL_LINKS $link"
-    done
-fi
-
-if [ -f "$AI_DIR/.gemini/settings.json" ]; then
-    link=".gemini/settings.json"
-    target="../../.ai/.gemini/settings.json"
-    install_symlink "$link" "$target"
-    ALL_LINKS="$ALL_LINKS $link"
+    fi
 fi
 
 # ---------------------------------------------------------------------------

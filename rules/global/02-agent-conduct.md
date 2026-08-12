@@ -22,12 +22,14 @@ Stack rules may add to these; they may not weaken them.
 ## Scope discipline
 
 - Match the scope of your change to what was asked. Do not
-  refactor, rename, or reformat files outside the task.
+  refactor, rename, or reformat files outside the task. The test:
+  every changed line should trace directly to the user's request.
 - Do not add speculative abstractions, feature flags, or
   backwards-compatibility shims for scenarios that are not
   required.
 - If the task is unclear or underspecified, stop and ask. Silent
-  guessing is worse than a paused task.
+  guessing is worse than a paused task. If multiple interpretations
+  exist, present them — do not pick one silently.
 
 ## Destructive and irreversible actions
 

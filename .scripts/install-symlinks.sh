@@ -146,8 +146,8 @@ if [ "$DO_CLAUDE" = true ]; then
         for skill_dir in "$AI_DIR/skills"/*/; do
             [ -d "$skill_dir" ] || continue
             name="$(basename "$skill_dir")"
-            link=".claude/skills/$name/SKILL.md"
-            target="../../../.ai/skills/$name/SKILL.md"
+            link=".claude/skills/$name"
+            target="../../.ai/skills/$name"
             install_symlink "$link" "$target"
             ALL_LINKS="$ALL_LINKS $link"
         done

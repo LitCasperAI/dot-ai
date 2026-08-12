@@ -33,13 +33,14 @@ This file is for humans.
 │   ├── global/                 ← always loaded
 │   └── stacks/<name>/          ← loaded per project.yaml
 ├── skills/                     ← procedures a user invokes (create-spec, implement, …)
-├── terminology/                ← shared vocabulary
+├── terminology/                ← shared vocabulary; always loaded
 ├── templates/                  ← skeletons for generated docs
 └── project.yaml.example        ← template; copy to .ai-local/
 
 .ai-local/                      ← project-specific (tracked in your repo)
 ├── project.yaml                ← per-project manifest, read first
 ├── rules/                      ← project-specific rule overrides
+├── terminology/                ← project-specific vocabulary; always loaded
 └── overrides/                  ← additive persona extensions per stack
 ```
 
@@ -106,6 +107,10 @@ Three rules hold this together:
    → `.ai-local/rules/*`.** Later entries override earlier ones by
    same-filename replacement. `.ai-local/rules/` wins. Core rules (`rules.core`)
    are always loaded; contextual rules (`rules.contextual`) are loaded on-demand.
+6. **Terminology is loaded in order: `.ai/terminology/*.md` →
+   `.ai-local/terminology/*.md`**, always, for every session — never
+   conditional. Same-filename replacement; `.ai-local/terminology/`
+   wins.
 
 
 ---
@@ -213,7 +218,7 @@ Invoke **`/investigate`** with a topic or library name. The `architect` will eva
 ### "I'm unsure of a project-specific term or rule"
 
 Invoke **`/ask`** with your question. The `librarian` will:
-- Search `terminology/global.md`, `rules/`, and ADRs for the answer.
+- Search `.ai/terminology/*.md`, `.ai-local/terminology/*.md`, `rules/`, and ADRs for the answer.
 - Provide a response with direct citations to the source files.
 - Identify "Knowledge Gaps" where documentation is missing or ambiguous.
 

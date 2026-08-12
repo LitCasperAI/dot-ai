@@ -37,11 +37,13 @@ authoritative manifest. If it is missing, stop and ask.
 ├── rules/                      ← behavioral constraints (see README.md)
 │   ├── global/                 ← always loaded
 │   └── stacks/<name>/          ← loaded per project.yaml
+├── terminology/                ← shared vocabulary; always loaded
 ├── templates/                  ← doc skeletons (see README.md)
 └── project.yaml.example        ← template; copy to .ai-local/
 .ai-local/                      ← project-specific (tracked in your repo)
 ├── project.yaml                ← per-project manifest, read first
 ├── rules/                      ← project-specific rule overrides
+├── terminology/                ← project-specific vocabulary; always loaded
 └── overrides/                  ← additive persona extensions per stack
 ```
 
@@ -75,6 +77,21 @@ Rules are loaded based on the `rules` section in `project.yaml`.
 4. **Project Overrides (`.ai-local/rules/*`)**: Highest precedence.
 
 Rule replacement is by filename. If `rules.core` and `rules.contextual` both point to a file of the same name, the later entry wins.
+
+## Terminology precedence
+
+Terminology is loaded from `project.yaml`'s `terminology.load` list,
+in order, and is **always loaded** for every skill and every
+session — unlike contextual rules, it is never conditional on task
+alignment.
+
+1. `.ai/terminology/*.md` — shared vocabulary (submodule).
+2. `.ai-local/terminology/*.md` — project-specific vocabulary.
+
+Same-filename replacement, same as rules: if both directories
+contain a file of the same name, `.ai-local/terminology/` wins.
+Skills never hardcode a terminology path — they read the list from
+`project.yaml`.
 
 ## Personas and overrides
 

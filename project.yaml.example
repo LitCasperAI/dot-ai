@@ -36,7 +36,11 @@ personas:
     designer:        [design_system, design_system_global]
 
 terminology:
-  load: [global]
+  # Always loaded, in order. .ai-local/terminology/*.md wins on
+  # same-filename collision with .ai/terminology/*.md.
+  load:
+    - .ai/terminology/*.md
+    - .ai-local/terminology/*.md
 
 paths:
   briefs: docs/briefs

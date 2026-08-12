@@ -51,8 +51,9 @@ structural checks defined in this file.
    - every `.scripts/*.sh`
    - every `.scripts/*.ps1`
 
-   Resolve via glob. `<ROOT>.ai-local/overrides/` and `<ROOT>.ai-local/rules/`
-   are allowed to be empty and are **not** in the manifest.
+   Resolve via glob. `<ROOT>.ai-local/overrides/`, `<ROOT>.ai-local/rules/`,
+   and `<ROOT>.ai-local/terminology/` are allowed to be empty and are
+   **not** in the manifest.
    `<ROOT>SCAFFOLD_VERSION` is handled separately by Step 5.
 
 3. **Content-presence checks.** For every manifest entry resolved in Step 2:

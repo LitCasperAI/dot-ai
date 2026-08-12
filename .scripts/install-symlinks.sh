@@ -281,6 +281,7 @@ echo "=== Project-local config (.ai-local/) ==="
 
 for dir in \
     .ai-local/rules \
+    .ai-local/terminology \
     .ai-local/overrides
 do
     if [ -d "$REPO_ROOT/$dir" ]; then

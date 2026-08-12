@@ -309,6 +309,7 @@ Write-Host "=== Project-local config (.ai-local/) ==="
 
 $aiLocalDirs = @(
     '.ai-local/rules'
+    '.ai-local/terminology'
     '.ai-local/overrides'
 )
 

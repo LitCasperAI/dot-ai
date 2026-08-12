@@ -15,12 +15,12 @@ description: Ask a question about the project's rules, terminology, architecture
 
 ## Rules
 
-Always load `rules.core` and `terminology/global.md`. Proactively load `rules.contextual` if the question relates to a specific domain (e.g., testing, deployment).
+Always load `rules.core` and every file in `terminology.load` (per `project.yaml`). Proactively load `rules.contextual` if the question relates to a specific domain (e.g., testing, deployment).
 
 ## Steps
 
 1. **Discovery (`librarian`)**: 
-   - Search `terminology/global.md` for keyword matches.
+   - Search every file in `terminology.load` for keyword matches.
    - Search `<paths.decisions>/` (ADRs) for relevant architectural decisions.
    - Grep `rules/` for relevant constraints or procedures.
    - Search `<paths.specs>/archive/` if the question is about a specific historical feature.

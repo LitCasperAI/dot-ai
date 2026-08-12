@@ -76,10 +76,13 @@ structural checks defined in this file.
    4a. **Symlinks.** Walk `ROOT` recursively.
    For every symlink encountered, resolve its target. If the target does not exist on disk → `FAIL — broken symlink <link> -> <target>`. Otherwise → `PASS`.
 
-   4b. **Frontmatter `related.*` pointers.** (Only if `docs/` exists at the root).
-   For every `*.md` under `docs/briefs/`, `docs/specs/`, `docs/plans/`, and `docs/decisions/`, parse YAML frontmatter. For every non-null value under `related.*`:
+   4b. **Frontmatter `related.*` pointers.** CONSUMER mode only — in SOURCE mode, skip this check entirely (the bare scaffold carries no `docs/` tree of its own to validate).
+
+   In CONSUMER mode, read `paths.briefs`, `paths.specs`, `paths.plans`, and `paths.decisions` from `PROJECT_YAML` (`.ai-local/project.yaml`). If `PROJECT_YAML` is missing or any of those keys is unset, record `FAIL — PROJECT_YAML missing required paths.* keys` and skip the rest of 4b.
+
+   Otherwise, for every `*.md` under the resolved `paths.briefs`, `paths.specs`, and `paths.plans` directories, parse YAML frontmatter. For every non-null value under `related.*`:
    - String path: `FAIL` if the path does not resolve; `PASS` otherwise.
-   - List value: for each id, `FAIL` if no file matching `docs/decisions/NNNN-*.md` exists; `PASS` per id otherwise.
+   - List value: for each id, `FAIL` if no file matching `<paths.decisions>/NNNN-*.md` exists; `PASS` per id otherwise.
 
 5. **Version-record check.** Read `<ROOT>SCAFFOLD_VERSION`.
 

@@ -16,7 +16,7 @@ description: Audit local and remote git branches in the current repository. Iden
 
 ## Rules loaded
 
-From `.ai/project.yaml`: all entries under `rules.core` and
+From `.ai-local/project.yaml`: all entries under `rules.core` and
 `rules.contextual`.
 
 ## Tooling
@@ -56,7 +56,7 @@ The script:
 ## Steps
 
 1. **Orient.**
-   Read `.ai/project.yaml` if present. Confirm the current directory is a
+   Read `.ai-local/project.yaml` if present. Confirm the current directory is a
    git repository (`git rev-parse --git-dir`). If not, stop with a clear
    error.
 

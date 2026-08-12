@@ -24,7 +24,9 @@ Use the format in [TERMINOLOGY-FORMAT.md](./TERMINOLOGY-FORMAT.md).
 
 ## ADR file structure
 
-Most repos keep ADRs in `docs/adr/`:
+Check `project.yaml`'s `paths.decisions` first — that's where this project routes ADRs, and it takes precedence over everything below.
+
+Only if `paths.decisions` is unset does the fallback apply: most repos keep ADRs in `docs/adr/`:
 
 ```
 docs/adr/
@@ -32,9 +34,7 @@ docs/adr/
 └── 0002-postgres-for-write-model.md
 ```
 
-In a multi-context repo, context-specific decisions can live alongside the relevant subsystem instead: `src/ordering/docs/adr/`.
-
-Create `docs/adr/` lazily — only when the first ADR is needed. (If this project already routes ADRs elsewhere — check `project.yaml`'s `paths.decisions` — follow that instead and treat this section as the fallback for projects that don't declare one.)
+In a multi-context repo, context-specific decisions can live alongside the relevant subsystem instead: `src/ordering/docs/adr/`. Create `docs/adr/` lazily — only when the first ADR is needed.
 
 ## During the session
 

@@ -12,6 +12,11 @@ description: Implement an approved plan file under docs/plans/active/ phase by p
 - Optional: a specific phase to work on. If omitted, continue from
   the task marked 🔄, or from the first unchecked task in the
   earliest incomplete phase if no marker is present.
+- Optional: `mode: full-plan`. Set when this skill is invoked to
+  carry an entire plan to completion in one sitting (e.g. via the
+  `goal` skill) rather than one phase at a time. Triggers the
+  fan-out path in step 2a instead of stopping at the next phase
+  boundary.
 
 ## Personas
 
@@ -46,6 +51,31 @@ and ask.
    there is no marker, uses the first unchecked task in the
    earliest incomplete phase. Announces the chosen task before
    starting work.
+
+2a. **Fan-out (`mode: full-plan` only).** Skip this step entirely
+    unless `mode: full-plan` was requested. Phases run in plan
+    order, one at a time — never in parallel — since each phase is
+    assumed to build on the file state the previous one left
+    behind; if the plan explicitly marks phases as independent,
+    those may be dispatched together instead. For each remaining
+    phase, starting from the one located in step 2:
+    - Invoke the `handoff` skill, passing the plan's path and the
+      phase number as its argument. Per `handoff`'s own rules, the
+      resulting document references the plan, spec, and brief by
+      path rather than restating them, and its "suggested skills"
+      section names `implement` with that phase as the target.
+    - Dispatch a sub-agent carrying that handoff doc. The sub-agent
+      loads the `implementer` persona itself (per the Personas
+      section above) and runs steps 3–5 for every task in that
+      phase only, then reports back instead of pausing.
+    - Wait for the sub-agent to finish and confirm the phase is ✅
+      (and its tracker issue, if any, is closed per step 5) before
+      writing the next phase's handoff doc.
+    - If a sub-agent stops on an escalation (per the persona's
+      "What I escalate" list) or a failing check it cannot resolve,
+      halt the fan-out, surface the issue to the user, and do not
+      dispatch further phases.
+    Once every phase is ✅, proceed to step 8.
 
 3. **Implement one task.** `implementer` writes the minimum code
    that makes the task true. Matches surrounding conventions. Does

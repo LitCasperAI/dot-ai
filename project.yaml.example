@@ -50,3 +50,33 @@ paths:
   design_system: docs/design-system.md
   design_system_global: .ai/design-system.md
   index: docs/README.md
+
+# Optional. Omit entirely, or set type: local, for "no remote
+# tracker" — every publish/sync/close call in
+# 17-tracker-integration.md becomes a documented no-op. Never put a
+# credential value here; credential_env names an environment
+# variable the agent reads at call time.
+#
+# tracker:
+#   type: gitlab                  # gitlab | github | jira | local
+#   url: https://gitlab.example.com
+#   project: group/subgroup/project
+#   credential_env: GITLAB_TOKEN
+#   label_prefix: ai-plan         # optional, default "ai-plan"
+#
+# tracker:
+#   type: github
+#   url: https://api.github.com
+#   project: my-org/my-repo
+#   credential_env: GITHUB_TOKEN
+#   label_prefix: ai-plan
+#
+# tracker:
+#   type: jira
+#   url: https://my-org.atlassian.net
+#   project: PROJ
+#   credential_env: JIRA_TOKEN
+#   label_prefix: ai-plan
+#
+# tracker:
+#   type: local

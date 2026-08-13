@@ -5,8 +5,9 @@ description: Pick up an in-progress plan and hand off to implement with context 
 
 ## Inputs
 
-- Path to a plan file in `<paths.plans>/active/` with
-  `status: in-progress` (or `draft`, which this skill promotes).
+- Path to a plan file in `<paths.plans>/active/` with `status` in
+  `{approved, in-progress}`. `status: draft` is refused — see
+  `create-plan`'s approval step.
 - Optional: a specific phase or task to jump to. If omitted,
   the cursor is derived from the 🔄 marker and the latest Notes
   entry.
@@ -29,7 +30,8 @@ and ask.
 1. **Orient.** Read `.ai-local/project.yaml`. Load all `rules.core` 
    and required `rules.contextual` files. Load the plan. If
    `status: done`, stop — there is nothing to resume. If
-   `status: draft`, promote to `in-progress` and bump `updated`.
+   `status: draft`, stop immediately with "this plan needs approval
+   first" — do not hand off to `implement`.
 
 2. **Load related context.** Resolve `related.brief` and
    `related.spec` from the plan's frontmatter. Read both in

@@ -16,7 +16,7 @@ To optimize context and maintain high signal-to-noise ratio, follow these loadin
 1. **Core Only by Default:** Only files in `rules.core` (defined in `project.yaml`) are guaranteed to be in your active context at session start.
 2. **Load on Alignment:** When a task involves a specific domain, you MUST proactively load relevant contextual rules from `rules.contextual`. Examples:
    - **Testing/Refactoring:** Load `06-testing.md`.
-   - **New Feature/Doc:** Load `03-documentation.md` and `04-doc-lifecycle.md`.
+   - **New Feature/Doc:** Load `03-documentation.md` and `04-doc-lifecycle.md`. When the task is plan-phasing, also load `16-vertical-slicing.md`.
    - **API/Library Change:** Load `07-dependencies.md`.
    - **UI Work:** Load `10-design-system.md`.
 3. **Check for Project Overrides:** Always check if a contextual rule has a matching filename in `.ai-local/rules/` before acting on the global version.

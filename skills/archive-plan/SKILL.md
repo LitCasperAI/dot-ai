@@ -30,8 +30,9 @@ judgment call.
 
 From `.ai-local/project.yaml`: `paths.*`. Invariants are defined in
 `rules/global/04-doc-lifecycle.md` (read for reference, not
-interpreted). If `project.yaml` is missing or malformed, stop
-and ask.
+interpreted). The tracker defensive-close step in Step 7 reads
+`rules/global/17-tracker-integration.md`. If `project.yaml` is
+missing or malformed, stop and ask.
 
 ## Steps
 
@@ -96,19 +97,28 @@ and ask.
    pointers into `active/`, rewrite those too by the same
    rule.
 
-7. **Merge Open Questions.** Extract the exact date prefix from the plan's filename.
+7. **Defensive close.** If the tracker is configured (non-`local`
+   `tracker:` block in `project.yaml`) and the moved plan's
+   `tracker.parent.id` is set, call Close on it (see
+   `17-tracker-integration.md`). Idempotent — a tracker reporting
+   "already closed" is not an error; this is a backstop independent
+   of whether `implement`'s per-phase sync already closed it. On a
+   `local`/absent tracker, or a plan with no recorded
+   `tracker.parent`, this is a documented no-op.
+
+8. **Merge Open Questions.** Extract the exact date prefix from the plan's filename.
    Check if `docs/open-questions/<exact-date-prefix>-<id>.md` exists for the
    completed plan. If so, merge its resolved questions into the archived plan
    (or spec/brief as appropriate), and then delete the transient questions file.
 
-8. **Refresh the dashboard.** Invoke `refresh-docs` —
+9. **Refresh the dashboard.** Invoke `refresh-docs` —
    by reading `.ai/skills/refresh-docs/SKILL.md` and
    executing its procedure inline. Skill-invoking-skill has no
    standard cross-tool mechanism, so "invoke" means running
    that procedure here. If the procedure cannot be executed,
    surface the failure — do not silently continue.
 
-9. **Leave ADRs alone.** Do not touch `<paths.decisions>/`.
+10. **Leave ADRs alone.** Do not touch `<paths.decisions>/`.
 
 ## Outputs
 

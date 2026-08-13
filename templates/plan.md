@@ -13,6 +13,9 @@ progress:
   total: 0
   done: 0
   current_phase: 1
+tracker:
+  parent: null # { id, url } mirror of the spec's issue, once published
+  phases: [] # [{ slug, issue: { id, url } | null, blocked_by: [<slug>, ...] }]; see 17-tracker-integration.md
 ---
 
 # <Feature Name> — Implementation Plan
@@ -23,20 +26,20 @@ Link to spec: `docs/specs/active/YYYY-MM-DD-<slug>.md`
 Link to brief: `docs/briefs/active/YYYY-MM-DD-<slug>.md`
 Link to open questions: `docs/open-questions/YYYY-MM-DD-<slug>.md`
 
-## Phase 1 — <Name>
+## Phase 1 — <Name> <!-- slug: phase-1-<kebab-name> -->
 
 - [ ] 🔄 First task
 - [ ] Next task
 - [ ] Last task in this phase
 - [ ] **Validation**: Execute stack-mandated validation (e.g., lint, build, test).
 
-## Phase 2 — <Name>
+## Phase 2 — <Name> <!-- slug: phase-2-<kebab-name> -->
 
 - [ ] Task
 - [ ] Task
 - [ ] **Validation**: Execute stack-mandated validation (e.g., lint, build, test).
 
-## Phase 3 — <Name>
+## Phase 3 — <Name> <!-- slug: phase-3-<kebab-name> -->
 
 - [ ] Task
 - [ ] Task
@@ -65,4 +68,14 @@ code is in, what the next actionable step is, and which branch._
     checkbox flip. `current_phase` tracks the active phase.
   - Rule compliance is not exhaustive — list only rules that
     matter for this specific plan, plus any gates.
+  - A plan starts at `status: draft` and must be flipped to
+    `approved` (manual `status: approved` edit, or
+    `approve=<plan-path>` on `create-plan`) before `implement` or
+    `resume-plan` will touch it. See `04-doc-lifecycle.md`.
+  - Each `## Phase N — <Name> <!-- slug: phase-N-<kebab-name> -->`
+    heading carries a stable, position-independent slug, assigned
+    once (by `create-plan`, or manually for hand-authored plans)
+    and never changed thereafter. `tracker.phases[].slug` in the
+    frontmatter matches this comment. See
+    `17-tracker-integration.md`.
 -->

@@ -6,8 +6,9 @@ description: Implement an approved plan file under docs/plans/active/ phase by p
 ## Inputs
 
 - Path to a plan file in `<paths.plans>/active/` (path resolved via
-  `.ai-local/project.yaml`) with `status: in-progress`. `status: draft`
-  is accepted and promoted to `in-progress` in step 1.
+  `.ai-local/project.yaml`) with `status` in `{approved,
+  in-progress}`. `status: draft` is refused — see `create-plan`'s
+  approval step. `approved` is promoted to `in-progress` in step 1.
 - Optional: a specific phase to work on. If omitted, continue from
   the task marked 🔄, or from the first unchecked task in the
   earliest incomplete phase if no marker is present.
@@ -24,7 +25,7 @@ description: Implement an approved plan file under docs/plans/active/ phase by p
 From `.ai-local/project.yaml`:
 
 - All entries in `rules.core`, applied in order.
-- Relevant entries from `rules.contextual` (specifically `06-testing.md`, `07-dependencies.md`, and any stack-specific implementation rules).
+- Relevant entries from `rules.contextual` (specifically `06-testing.md`, `07-dependencies.md`, `17-tracker-integration.md`, and any stack-specific implementation rules).
 
 This skill does not hardcode rule paths. If `project.yaml` is
 missing, malformed, or references files that do not exist, stop
@@ -35,8 +36,11 @@ and ask.
 1. **Orient.** `implementer` reads `.ai-local/project.yaml`, then loads
    the plan file, the spec it references, and the brief it
    references. Loads the persona, all `rules.core`, and required
-   `rules.contextual` files. If `status` on the plan is `draft`, promote it to
-   `in-progress` and bump `updated`.
+   `rules.contextual` files. Require `status` in `{approved,
+   in-progress}`; refuse `status: draft` with "this plan needs
+   approval first — see `create-plan`'s approval step." If `status`
+   on the plan is `approved`, promote it to `in-progress` and bump
+   `updated`.
 
 2. **Locate the cursor.** `implementer` finds the 🔄 marker. If
    there is no marker, uses the first unchecked task in the
@@ -56,7 +60,13 @@ and ask.
    marker to the next task. Increments `progress.done` and bumps
    `updated` in the frontmatter. If a phase just completed, marks
    its heading with ✅ and, if a later phase exists, bumps
-   `current_phase`.
+   `current_phase`. Immediately after marking the phase ✅: if the
+   tracker is configured (non-`local` `tracker:` block in
+   `project.yaml`) and that phase has a recorded
+   `tracker.phases[].issue.id`, call Close on it (see
+   `17-tracker-integration.md`) before moving to the next phase or
+   pausing. On a `local`/absent tracker, or a phase with no
+   recorded issue, this is a documented no-op.
 
 6. **Repeat** from step 2 until a phase boundary is reached or the
    user asks to pause.

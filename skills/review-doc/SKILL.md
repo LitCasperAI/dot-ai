@@ -40,7 +40,8 @@ description: Review a brief, spec, plan, test plan, or ADR for clarity, complete
 From `.ai-local/project.yaml`: all entries under `rules.core`,
 particularly `global/03-documentation.md` (frontmatter and
 filename contracts), `global/04-doc-lifecycle.md` (states,
-approvals, archival), and any relevant rule file from 
+approvals, archival), `global/16-vertical-slicing.md` (plan phase
+quality), and any relevant rule file from 
 `rules.contextual` the doc itself cites.
 The review cites specific rule files and sections — it does not
 summarise "the rules" generically.
@@ -65,8 +66,11 @@ If `project.yaml` is missing or malformed, stop and ask.
    - `related.*` pointers resolve on disk; null values are
      allowed where the contract permits absence.
    - For plans: progress counters, the 🔄 marker, and Notes
-     entries match `04-doc-lifecycle.md`'s pause discipline.
-     Each violation → **Blocking**.
+     entries match `04-doc-lifecycle.md`'s pause discipline; each
+     phase conforms to `16-vertical-slicing.md` (a stated
+     one-sentence demoable end state, no unrelated-layer spanning,
+     any horizontal phase explicitly declared as a wide-refactor
+     exception). Each violation → **Blocking**.
 
 3. **Type-specific content pass (reviewer + owner persona).**
    Open the doc and read end to end before commenting.

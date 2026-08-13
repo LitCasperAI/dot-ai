@@ -93,7 +93,11 @@ drafts spec._` Confirm `status: draft`. Stop. Tell the user:
    considered, Open questions. If the task involves UI changes,
    the designer appends an "ASCII Mockup" section. Frontmatter:
    `type: spec`, `status: draft`, `owner: architect`,
-   `related.brief` set to the brief path.
+   `related.brief` set to the brief path. `tracker.issue` defaults
+   to `null` — `create-spec` never calls the tracker itself; the
+   spec is published later by `create-plan`'s publish step (see
+   `17-tracker-integration.md`), the first time a plan is created
+   against this spec in a tracker-configured project.
 
 9. **Author ADRs (architect).** For every load-bearing or
    non-obvious decision made while drafting, create

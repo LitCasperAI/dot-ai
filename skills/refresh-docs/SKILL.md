@@ -28,6 +28,8 @@ From `.ai-local/project.yaml`: `paths.*`. No rule interpretation. If
    `<paths.plans>/active/`, read every `*.md` file's
    frontmatter. Record `id`, `type`, `status`, `owner`,
    `updated`, and for plans `progress.done` / `progress.total`.
+   For specs, also record `tracker.issue`; for plans, also record
+   `tracker.parent`.
 
 3. **Collect archived entries.** For each of the three
    `archive/` directories, read frontmatter. Rank entries by
@@ -66,7 +68,12 @@ From `.ai-local/project.yaml`: `paths.*`. No rule interpretation. If
    ```
 
    Empty sections render as `_None._` rather than being
-   omitted. The `Progress` column for non-plan rows is blank.
+   omitted. The `Progress` column for non-plan rows is blank. When
+   a plan or spec row's frontmatter has a non-null tracker
+   issue/parent (`tracker.issue` for specs, `tracker.parent` for
+   plans), append `[#<id>](<url>)` to that row's ID cell. Rows
+   without a tracker link render exactly as before — no column is
+   added.
 
 6. **Write no other file.** The skill mutates exactly
    `<paths.index>`.

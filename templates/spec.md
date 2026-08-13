@@ -9,6 +9,8 @@ related:
   brief: <path under briefs/active or briefs/archive>
   plan: null
   decisions: []
+tracker:
+  issue: null # { id, url } once published by create-plan; see 17-tracker-integration.md
 ---
 
 # <Feature> — Technical Spec

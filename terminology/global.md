@@ -56,6 +56,17 @@ Two sections:
   up.
 - **Integrity check** — the read-only `/integrity-check` skill
   that reports on the local health of the `.ai/` installation.
+- **Vertical slice / tracer bullet** — a plan phase that is a
+  one-sentence, independently demoable end state cutting through
+  every layer it touches. Defined in `16-vertical-slicing.md`.
+- **Horizontal slice** — the antipattern: a phase confined to one
+  layer (e.g. "do the schema for every field"). Disallowed except
+  as a declared wide-refactor exception. Defined in
+  `16-vertical-slicing.md`.
+- **Tracker** — the optional `project.yaml` `tracker:` block naming
+  a remote issue tracker (`gitlab`, `github`, `jira`). `local` or an
+  absent block means every publish/sync call is a documented
+  no-op. Defined in `17-tracker-integration.md`.
 
 ---
 

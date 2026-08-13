@@ -9,7 +9,7 @@ generated doc.
 | --------- | -------------------------------- | --------------- |
 | brief     | draft → approved                 | product-analyst |
 | spec      | draft → in-review → approved     | architect       |
-| plan      | draft → in-progress → done       | implementer     |
+| plan      | draft → approved → in-progress → done | implementer |
 | test-plan | draft → approved                 | tester          |
 | adr       | proposed → accepted → superseded | architect       |
 
@@ -26,6 +26,11 @@ a superseding ADR, not a status reversion.
 - A spec is approved via the architect's normal review flow
   (`draft → in-review → approved`). The approver is a human
   reviewer or a reviewer persona when one exists.
+- A plan is approved when its frontmatter `status` is manually
+  edited to `approved`, or when `create-plan` is invoked with an
+  explicit `approve=<plan-path>` argument. Both signals are
+  accepted; no other signal counts. `implement` and `resume-plan`
+  refuse to touch a plan still at `status: draft`.
 - An ADR is accepted when `status` is flipped from `proposed` to
   `accepted`.
 
